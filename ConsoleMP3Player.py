@@ -101,6 +101,7 @@ class PlayList(object):
 class Song(object):
     def show(self):  # TODO: add current song time, add full length, read out some tags
         os.system('clear')  # only in terminal
+        print('')
         try:
             p.get_state()
             print("\nPlaying right now:" + PlayList.playlist[current_play_number])
@@ -186,6 +187,23 @@ while current_input != "exit":
         p.audio_set_mute(False)
         print("Unmuted")
 
+    elif current_input == "ismute":
+        p.audio_set_mute(False)
+        if p.audio_get_mute() == 0:
+            print("Player is not muted")
+
+        else:
+            print("Player is muted")
+
+    elif current_input == "getvolume":
+        print("Volume:  ", end="")
+        print(p.audio_get_volume(), end="")
+        print("%")
+
+    elif current_input == "setvolume":
+        print("Set Volume to[%, 0-100]:")
+        p.audio_set_volume(int(input()))
+
     elif current_input == "skip":
         p.stop()
         if len(PlayList.playlist) != 0 and current_play_number + 1 < len(PlayList.playlist):
@@ -209,6 +227,9 @@ while current_input != "exit":
         print("  |togglemute    |toggles mute of this player")
         print("  |mute          |mutes this player")
         print("  |unmute        |unmutes this player")
+        print("  |ismute        |outputs mute status")
+        print("  |getvolume     |outputs volume")
+        print("  |setvolume     |sets  volume")
 
     elif current_input == "skipto":
         print("not implemented yet, sry")  # TODO: implement skipto second, minute and so on
