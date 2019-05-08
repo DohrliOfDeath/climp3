@@ -11,3 +11,6 @@ To launch/install:
   
   
   exiting doesn't work properly at the moment, so sometimes you need to spam CTRL + C to exit
+
+
+is currently only tested on Debian 10 (unstable), Kubuntu 19.04 and Slackware 14.2
