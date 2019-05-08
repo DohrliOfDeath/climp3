@@ -174,6 +174,18 @@ while current_input != "exit":
     elif current_input == "clear":
         os.system('clear')
 
+    elif current_input == "togglemute":
+        p.audio_toggle_mute()
+        print("Mute toggled")
+
+    elif current_input == "mute":
+        p.audio_set_mute(True)
+        print("Muted")
+
+    elif current_input == "unmute":
+        p.audio_set_mute(False)
+        print("Unmuted")
+
     elif current_input == "skip":
         p.stop()
         if len(PlayList.playlist) != 0 and current_play_number + 1 < len(PlayList.playlist):
@@ -194,6 +206,9 @@ while current_input != "exit":
         print("  |stop          |stops the current song")
         print("  |clear         |clears the command line")
         print("  |skip          |skips the current song")
+        print("  |togglemute    |toggles mute of this player")
+        print("  |mute          |mutes this player")
+        print("  |unmute        |unmutes this player")
 
     elif current_input == "skipto":
         print("not implemented yet, sry")  # TODO: implement skipto second, minute and so on
