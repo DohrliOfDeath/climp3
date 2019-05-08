@@ -106,7 +106,10 @@ class Song(object):
             p.get_state()
         except NameError:
             player_not_defined()
-        print("\nPlaying right now:" + PlayList.playlist[current_play_number])
+        try:
+            print("\nPlaying right now:" + PlayList.playlist[current_play_number])
+        except IndexError:
+            print("Please define first a playlist")
 
     def play(self, song_number, is_first_time):
         global p
@@ -180,6 +183,7 @@ while current_input != "exit":
         except NameError:
             player_not_defined()
         print("deleting the current playlist")
+        current_play_number = 0
         PlayList.playlist.clear()
 
     elif current_input == "clear":
@@ -263,5 +267,3 @@ while current_input != "exit":
 
     elif current_input == "skipto":
         print("not implemented yet, sry")  # TODO: implement skipto second, minute and so on
-
-
