@@ -33,7 +33,7 @@ class Directory(object):
         subfolder_name = os.listdir(os.getcwd())[subfolder_number - 1]
         try:
             os.chdir(os.getcwd() + "/" + subfolder_name)
-        except:
+        except OSError:
             PlayList.add_song(PlayList, subfolder_number - 1)
 
         print(os.getcwd())
@@ -54,7 +54,7 @@ class Directory(object):
             print(":>", end="")
             try:
                 sub_folder_number = int(input())
-            except:
+            except ValueError:
                 os.system('clear')  # only in terminal
                 print("Wrong input, try again")
 
@@ -104,9 +104,9 @@ class Song(object):
         print('')
         try:
             p.get_state()
-            print("\nPlaying right now:" + PlayList.playlist[current_play_number])
-        except:
-            print("Nothing is playing right now")
+        except NameError:
+            player_not_defined()
+        print("\nPlaying right now:" + PlayList.playlist[current_play_number])
 
     def play(self, song_number, is_first_time):
         global p
@@ -131,6 +131,10 @@ class Song(object):
             print("\nFinished playing Playlist\n>", end="")
 
 
+def player_not_defined():
+    print("To access this command, select music with cd and play music with play")
+
+
 print("\nCurrent Directory: " + os.getcwd())
 current_input = ""
 current_song_duration = 0
@@ -138,7 +142,7 @@ while current_input != "exit":
     print(">", end="")
     try:
         current_input = input()
-    except:
+    except ValueError:
         print("Wrong input, try again")
 
     if current_input == "cd":
@@ -159,16 +163,22 @@ while current_input != "exit":
             thr.start()
 
     elif current_input == "pause":
-        p.pause()
+        try:
+            p.pause()
+        except NameError:
+            player_not_defined()
 
     elif current_input == "stop":
-        p.stop()
+        try:
+            p.stop()
+        except NameError:
+            player_not_defined()
 
     elif current_input == "delp":
         try:
             p.stop()
-        except:
-            print("", end="")
+        except NameError:
+            player_not_defined()
         print("deleting the current playlist")
         PlayList.playlist.clear()
 
@@ -176,40 +186,60 @@ while current_input != "exit":
         os.system('clear')
 
     elif current_input == "togglemute":
-        p.audio_toggle_mute()
+        try:
+            p.audio_toggle_mute()
+        except NameError:
+            player_not_defined()
         print("Mute toggled")
 
     elif current_input == "mute":
-        p.audio_set_mute(True)
+        try:
+            p.audio_set_mute(True)
+        except NameError:
+            player_not_defined()
         print("Muted")
 
     elif current_input == "unmute":
-        p.audio_set_mute(False)
+        try:
+            p.audio_set_mute(False)
+        except NameError:
+            player_not_defined()
         print("Unmuted")
 
     elif current_input == "ismute":
-        p.audio_set_mute(False)
-        if p.audio_get_mute() == 0:
-            print("Player is not muted")
-
-        else:
-            print("Player is muted")
+        try:
+            p.audio_set_mute(False)
+            if p.audio_get_mute() == 0:
+                print("Player is not muted")
+            else:
+                print("Player is muted")
+        except NameError:
+            player_not_defined()
 
     elif current_input == "getvolume":
         print("Volume:  ", end="")
-        print(p.audio_get_volume(), end="")
+        try:
+            print(p.audio_get_volume(), end="")
+        except NameError:
+            player_not_defined()
         print("%")
 
     elif current_input == "setvolume":
         print("Set Volume to[%, 0-100]:")
-        p.audio_set_volume(int(input()))
+        try:
+            p.audio_set_volume(int(input()))
+        except NameError:
+            player_not_defined()
 
     elif current_input == "skip":
         p.stop()
         if len(PlayList.playlist) != 0 and current_play_number + 1 < len(PlayList.playlist):
             thr = threading.Thread(target=Song.play, args=(Song, current_play_number + 1, True), kwargs={})
             thr.start()
-            p.play
+            try:
+                p.play
+            except NameError:
+                player_not_defined()
 
     elif current_input == "help":
         print("possible inputs:")
