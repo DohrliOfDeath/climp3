@@ -5,10 +5,14 @@ A MP3 Player for console, headless only, written in python3
 Dependencies:
 
   python3 (.7)
+  
   python-vlc
+  
   python3-pip
     
-
+  eyeD3
+  
+  
 
 install:
 
