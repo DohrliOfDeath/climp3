@@ -2,7 +2,6 @@ import os
 import vlc
 import time
 import threading
-from threading import *
 
 dirpath = os.path.dirname(__file__)
 current_play_number = 0
@@ -267,3 +266,5 @@ while current_input != "exit":
 
     elif current_input == "skipto":
         print("not implemented yet, sry")  # TODO: implement skipto second, minute and so on
+
+os.system('pkill python3')
