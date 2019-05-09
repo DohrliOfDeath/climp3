@@ -97,6 +97,18 @@ class PlayList(object):
             print(".|: " + PlayList.playlist[i])
             i += 1
 
+    def sort(self):
+        for passes in range(0, 20):
+           for i1 in range(len(PlayList.playlist) - 1):
+                audiofile1 = eyed3.load(PlayList.playlist[i1])
+                audiofile2 = eyed3.load(PlayList.playlist[i1 + 1])
+                if int(audiofile1.tag.track_num[0]) > int(audiofile2.tag.track_num[0]):
+                    temp = PlayList.playlist[i1]
+                    PlayList.playlist[i1] = PlayList.playlist[i1 + 1]
+                    PlayList.playlist[i1 + 1] = temp
+
+        print("Playlist sorted")
+
 
 class Song(object):
     def show(self):  # TODO: add current song time, add full length, read out some tags
@@ -184,7 +196,7 @@ while current_input != "exit":
         try:
             p.stop()
         except NameError:
-            player_not_defined()
+            print("", end="")
         print("deleting the current playlist")
         current_play_number = 0
         PlayList.playlist.clear()
@@ -248,6 +260,15 @@ while current_input != "exit":
             except NameError:
                 player_not_defined()
 
+    elif current_input == "sortp":
+        try:
+            p.stop()
+        except:
+            print("", end="")
+
+        current_play_number = -1
+        PlayList.sort(PlayList)
+
     elif current_input == "help":
         print("possible inputs:")
         print("  |exit          |stops music and exits mp3Player")
@@ -267,6 +288,7 @@ while current_input != "exit":
         print("  |ismute        |outputs mute status")
         print("  |getvolume     |outputs volume")
         print("  |setvolume     |sets  volume")
+        print("  |sortp         |stops music and sorts playlist after track number")
 
     elif current_input == "skipto":
         print("not implemented yet, sry")  # TODO: implement skipto second, minute and so on
