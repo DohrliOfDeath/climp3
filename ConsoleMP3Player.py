@@ -85,9 +85,9 @@ class PlayList(object):
         filename, file_extension = os.path.splitext(os.listdir(os.getcwd())[file_number])
         if file_extension == ".mp3":
             PlayList.playlist.append(os.getcwd() + "/" + os.listdir(os.getcwd())[file_number])
-            print("Adding file number " + str(file_number + 1) + " to Playlist")
+            print("|::| Adding file number " + str(file_number + 1) + " to Playlist")
         else:
-            print("Item is not an .mp3 nor a folder")
+            print("|EE| ITEM IS NOT A .mp3 NOR A FOLDER\n\n")
 
     def show_playlist(self):
         os.system('clear')  # only in terminal
@@ -107,8 +107,8 @@ class PlayList(object):
                         temp = PlayList.playlist[i1]
                         PlayList.playlist[i1] = PlayList.playlist[i1 + 1]
                         PlayList.playlist[i1 + 1] = temp
-        except:
-            print("Sorting failed")
+        except: # eyed3 fails on specific mp3 files no idea why
+            print("|EE| Sorting failed")
 
 
 class Song(object):
@@ -124,18 +124,17 @@ class Song(object):
             print('Album: ' + audiofile.tag.album)
             print('Track number: ' + str(audiofile.tag.track_num))
         except IndexError:
-            print("Please define first a playlist")
+            print("|EE| Please define first a playlist")
 
-    def play(self, song_number, is_first_time):
+    def play(self, song_number):
         global p
         global current_play_number
         current_play_number += 1
 
         audiofile = eyed3.load(PlayList.playlist[current_play_number])
-        if is_first_time:
-            print('Now playing: ' + audiofile.tag.artist + ' - ' + audiofile.tag.title)
-        else:
-            print('\nNow playing: ' + audiofile.tag.artist + ' - ' + audiofile.tag.title + "\n>", end="")
+        print("", end="\r")
+        print('|::| Now playing: ' + audiofile.tag.artist + ' - ' + audiofile.tag.title, end="")
+        print('\n>', end="")
 
         p = vlc.MediaPlayer("file://" + PlayList.playlist[song_number])
         p.play()
@@ -144,17 +143,18 @@ class Song(object):
             time.sleep(1)
 
         if song_number + 1 < len(PlayList.playlist):
-            thr1 = threading.Thread(target=Song.play, args=(object, song_number + 1, False), kwargs={})
+            print()
+            thr1 = threading.Thread(target=Song.play, args=(object, song_number + 1), kwargs={})
             thr1.start()
         else:
-            print("\nFinished playing Playlist\n>", end="")
+            print("\n|::| Finished playing Playlist", end="")
 
 
 def player_not_defined():
-    print("To access this command, select music with cd and play music with play")
+    print("|EE|To access this command, select music with cd and play music with play")
 
 
-print("\nCurrent Directory: " + os.getcwd())
+print("\n|;;| Current Directory: " + os.getcwd())
 current_input = ""
 current_song_duration = 0
 while current_input != "exit":
@@ -178,7 +178,7 @@ while current_input != "exit":
 
     elif current_input == "play":
         if len(PlayList.playlist) != 0:
-            thr = threading.Thread(target=Song.play, args=(Song, current_play_number, True), kwargs={})
+            thr = threading.Thread(target=Song.play, args=(Song, current_play_number), kwargs={})
             thr.start()
 
     elif current_input == "pause":
@@ -198,7 +198,7 @@ while current_input != "exit":
             p.stop()
         except NameError:
             print("", end="")
-        print("deleting the current playlist")
+        print("|::| deleting the current playlist")
         current_play_number = 0
         PlayList.playlist.clear()
 
@@ -210,34 +210,34 @@ while current_input != "exit":
             p.audio_toggle_mute()
         except NameError:
             player_not_defined()
-        print("Mute toggled")
+        print("|::| Mute toggled")
 
     elif current_input == "mute":
         try:
             p.audio_set_mute(True)
         except NameError:
             player_not_defined()
-        print("Muted")
+        print("|::| Muted")
 
     elif current_input == "unmute":
         try:
             p.audio_set_mute(False)
         except NameError:
             player_not_defined()
-        print("Unmuted")
+        print("|::| Unmuted")
 
     elif current_input == "ismute":
         try:
             p.audio_set_mute(False)
             if p.audio_get_mute() == 0:
-                print("Player is not muted")
+                print("|::|Player is not muted")
             else:
-                print("Player is muted")
+                print("|::|Player is muted")
         except NameError:
             player_not_defined()
 
     elif current_input == "getvolume":
-        print("Volume:  ", end="")
+        print("|::| Volume:  ", end="")
         try:
             print(p.audio_get_volume(), end="")
         except NameError:
@@ -254,7 +254,7 @@ while current_input != "exit":
     elif current_input == "skip":
         p.stop()
         if len(PlayList.playlist) != 0 and current_play_number + 1 < len(PlayList.playlist):
-            thr = threading.Thread(target=Song.play, args=(Song, current_play_number + 1, True), kwargs={})
+            thr = threading.Thread(target=Song.play, args=(Song, current_play_number + 1), kwargs={})
             thr.start()
             try:
                 p.play
@@ -292,6 +292,6 @@ while current_input != "exit":
         print("  |sortp         |stops music and sorts playlist after track number")
 
     elif current_input == "skipto":
-        print("not implemented yet, sry")  # TODO: implement skipto second, minute and so on
+        print("|EE| not implemented yet, sry")  # TODO: implement skipto second, minute and so on
 
 os.system('pkill python3')
