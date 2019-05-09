@@ -2,6 +2,7 @@ import os
 import vlc
 import time
 import threading
+import eyed3
 
 dirpath = os.path.dirname(__file__)
 current_play_number = 0
@@ -100,13 +101,15 @@ class PlayList(object):
 class Song(object):
     def show(self):  # TODO: add current song time, add full length, read out some tags
         os.system('clear')  # only in terminal
-        print('')
         try:
             p.get_state()
         except NameError:
             player_not_defined()
         try:
-            print("\nPlaying right now:" + PlayList.playlist[current_play_number])
+            audiofile = eyed3.load(PlayList.playlist[current_play_number])
+            print(audiofile.tag.artist + ' - ' + audiofile.tag.title)
+            print('Album: ' + audiofile.tag.album)
+            print('Track number: ' + str(audiofile.tag.track_num))
         except IndexError:
             print("Please define first a playlist")
 
@@ -115,10 +118,11 @@ class Song(object):
         global current_play_number
         current_play_number += 1
 
+        audiofile = eyed3.load(PlayList.playlist[current_play_number])
         if is_first_time:
-            print("now playing" + PlayList.playlist[song_number])
+            print('Now playing: ' + audiofile.tag.artist + ' - ' + audiofile.tag.title)
         else:
-            print("\nnow playing" + PlayList.playlist[song_number] + "\n>", end="")
+            print('\nNow playing: ' + audiofile.tag.artist + ' - ' + audiofile.tag.title + "\n>", end="")
 
         p = vlc.MediaPlayer("file://" + PlayList.playlist[song_number])
         p.play()
