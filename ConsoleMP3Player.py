@@ -98,16 +98,17 @@ class PlayList(object):
             i += 1
 
     def sort(self):
-        for passes in range(0, 20):
-           for i1 in range(len(PlayList.playlist) - 1):
-                audiofile1 = eyed3.load(PlayList.playlist[i1])
-                audiofile2 = eyed3.load(PlayList.playlist[i1 + 1])
-                if int(audiofile1.tag.track_num[0]) > int(audiofile2.tag.track_num[0]):
-                    temp = PlayList.playlist[i1]
-                    PlayList.playlist[i1] = PlayList.playlist[i1 + 1]
-                    PlayList.playlist[i1 + 1] = temp
-
-        print("Playlist sorted")
+        try:
+            for passes in range(0, 20):
+                for i1 in range(len(PlayList.playlist) - 1):
+                    audiofile1 = eyed3.load(PlayList.playlist[i1])
+                    audiofile2 = eyed3.load(PlayList.playlist[i1 + 1])
+                    if int(audiofile1.tag.track_num[0]) > int(audiofile2.tag.track_num[0]):
+                        temp = PlayList.playlist[i1]
+                        PlayList.playlist[i1] = PlayList.playlist[i1 + 1]
+                        PlayList.playlist[i1 + 1] = temp
+        except:
+            print("Sorting failed")
 
 
 class Song(object):
