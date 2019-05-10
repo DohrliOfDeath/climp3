@@ -5,7 +5,7 @@ import threading
 import eyed3
 
 dirpath = os.path.dirname(__file__)
-current_play_number = -1
+current_play_number = 0
 
 
 class Directory(object):
@@ -117,8 +117,7 @@ class PlayList(object):
 
 
 class Song(object):
-    def show(self):  # TODO: add current song time, add full length, read out some tags
-        os.system('clear')  # only in terminal
+    def show(self):  # TODO: Show Full Length and Played Time
         try:
             p.get_state()
         except NameError:
@@ -128,28 +127,32 @@ class Song(object):
             print(audiofile.tag.artist + ' - ' + audiofile.tag.title)
             print('Album: ' + audiofile.tag.album)
             print('Track number: ' + str(audiofile.tag.track_num))
+            print('Path:  ' + PlayList.playlist[current_play_number])
         except IndexError:
             print("|EE| Please define first a playlist")
 
-    def play(self, song_number):
+    def play(self, dummy):
         global p
         global current_play_number
-        current_play_number += 1
 
         audiofile = eyed3.load(PlayList.playlist[current_play_number])
-        print("", end="\r")
-        print('|::| Now playing: ' + audiofile.tag.artist + ' - ' + audiofile.tag.title, end="")
-        print('\n>', end="")
-
-        p = vlc.MediaPlayer("file://" + PlayList.playlist[song_number])
+        try:
+            print("", end="\r")
+            print('|::| Now playing: ' + audiofile.tag.artist + ' - ' + audiofile.tag.title, end="")
+            print(PlayList.playlist[current_play_number])
+            print('\n>', end="")
+        except:
+            print('yep')
+        p = vlc.MediaPlayer("file://" + PlayList.playlist[current_play_number])
         p.play()
 
         while str(p.get_state()) != "State.Ended":
             time.sleep(1)
 
-        if song_number + 1 < len(PlayList.playlist):
+        if current_play_number + 1 < len(PlayList.playlist):
             print()
-            thr1 = threading.Thread(target=Song.play, args=(object, song_number + 1), kwargs={})
+            current_play_number += 1
+            thr1 = threading.Thread(target=Song.play, args=(object, dummy), kwargs={})
             thr1.start()
         else:
             print("\n|::| Finished playing Playlist", end="")
@@ -182,8 +185,9 @@ while current_input != "exit":
         Song.show(Song)
 
     elif current_input == "play":
+        dummy = True
         if len(PlayList.playlist) != 0:
-            thr = threading.Thread(target=Song.play, args=(Song, current_play_number), kwargs={})
+            thr = threading.Thread(target=Song.play, args=(Song, dummy), kwargs={})
             thr.start()
 
     elif current_input == "pause":
@@ -257,9 +261,11 @@ while current_input != "exit":
             player_not_defined()
 
     elif current_input == "skip":
+        dummy = False  #TODO: find out why threading.Thread always needs an argument
         p.stop()
         if len(PlayList.playlist) != 0 and current_play_number + 1 < len(PlayList.playlist):
-            thr = threading.Thread(target=Song.play, args=(Song, current_play_number + 1), kwargs={})
+            current_play_number += 1
+            thr = threading.Thread(target=Song.play, args=(Song, dummy), kwargs={})
             thr.start()
             try:
                 p.play
