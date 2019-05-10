@@ -1,5 +1,5 @@
 # climp3
-A MP3 Player for console, headless only, written in python3
+A MP3 Player for console, headless only, written in python3 (linux only)
 
 
 Dependencies:
@@ -16,15 +16,13 @@ Dependencies:
 
 install:
 
-  Download the Files: ConsoleMP3Player.py and climp3
+  Download the File: climp3
   
   navigate with your console to the downloaded file,then:
   
    $ sudo chmod +x climp3
    
    $ sudo mv climp3 /usr/bin/
-   
-   $ sudo mv ConsoleMP3Player.py /usr/bin/
    
 
 start:
