@@ -5,7 +5,7 @@ import threading
 import eyed3
 
 dirpath = os.path.dirname(__file__)
-current_play_number = 0
+current_play_number = -1
 
 
 class Directory(object):
@@ -98,15 +98,20 @@ class PlayList(object):
             i += 1
 
     def sort(self):
+        exchange = True
+        passnum = len(PlayList.playlist)
         try:
-            for passes in range(0, 20):
+            while passnum > 0 and exchange:
+                exchange = False
                 for i1 in range(len(PlayList.playlist) - 1):
                     audiofile1 = eyed3.load(PlayList.playlist[i1])
                     audiofile2 = eyed3.load(PlayList.playlist[i1 + 1])
                     if int(audiofile1.tag.track_num[0]) > int(audiofile2.tag.track_num[0]):
+                        exchange = True
                         temp = PlayList.playlist[i1]
                         PlayList.playlist[i1] = PlayList.playlist[i1 + 1]
                         PlayList.playlist[i1 + 1] = temp
+                passnum -= 1
         except: # eyed3 fails on specific mp3 files no idea why
             print("|EE| Sorting failed")
 
