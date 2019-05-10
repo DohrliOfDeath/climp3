@@ -126,7 +126,7 @@ class Song(object):
             audiofile = eyed3.load(PlayList.playlist[current_play_number])
             print(audiofile.tag.artist + ' - ' + audiofile.tag.title)
             print('Album: ' + audiofile.tag.album)
-            print('Track number: ' + str(audiofile.tag.track_num))
+            print('Track number: ' + str(int(audiofile.tag.track_num[0])))
             print('Path:  ' + PlayList.playlist[current_play_number])
         except IndexError:
             print("|EE| Please define first a playlist")
@@ -136,13 +136,10 @@ class Song(object):
         global current_play_number
 
         audiofile = eyed3.load(PlayList.playlist[current_play_number])
-        try:
-            print("", end="\r")
-            print('|::| Now playing: ' + audiofile.tag.artist + ' - ' + audiofile.tag.title, end="")
-            print(PlayList.playlist[current_play_number])
-            print('\n>', end="")
-        except:
-            print('yep')
+
+        print("", end="\r")
+        print('|' + str(current_play_number + 1) + '::' + str(len(PlayList.playlist))+ '| Now playing: ' + audiofile.tag.artist + ' - ' + audiofile.tag.title, end="")
+        print('\n>', end="")
         p = vlc.MediaPlayer("file://" + PlayList.playlist[current_play_number])
         p.play()
 
@@ -156,6 +153,23 @@ class Song(object):
             thr1.start()
         else:
             print("\n|::| Finished playing Playlist", end="")
+
+    def skipto(self):
+        global current_play_number
+        print("Skip to track number: ", end="")
+        try:
+            p.stop()
+            current_play_number = int(input()) - 1
+        except TypeError:
+            return
+        except:
+            print("", end="")
+
+        if len(PlayList.playlist) != 0 and current_play_number < len(PlayList.playlist):
+            thr = threading.Thread(target=Song.play, args=(Song, dummy), kwargs={})
+            thr.start()
+        else:
+            print("Invalid number entered or the playlist does not exist yet")
 
 
 def player_not_defined():
@@ -254,7 +268,7 @@ while current_input != "exit":
         print("%")
 
     elif current_input == "setvolume":
-        print("Set Volume to[%, 0-100]:")
+        print("Set Volume to[%, 0-100]: ", end="")
         try:
             p.audio_set_volume(int(input()))
         except NameError:
@@ -267,10 +281,6 @@ while current_input != "exit":
             current_play_number += 1
             thr = threading.Thread(target=Song.play, args=(Song, dummy), kwargs={})
             thr.start()
-            try:
-                p.play
-            except NameError:
-                player_not_defined()
 
     elif current_input == "sortp":
         try:
@@ -301,8 +311,9 @@ while current_input != "exit":
         print("  |getvolume     |outputs volume")
         print("  |setvolume     |sets  volume")
         print("  |sortp         |stops music and sorts playlist after track number")
+        print("  |skipto        |stops music and skips to entered song number")
 
     elif current_input == "skipto":
-        print("|EE| not implemented yet, sry")  # TODO: implement skipto second, minute and so on
+        Song.skipto(Song)
 
 os.system('pkill python3')
