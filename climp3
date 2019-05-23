@@ -1,9 +1,12 @@
-#!/usr/bin/env python3
 import os
 import vlc
 import time
 import threading
 import eyed3
+#from mutagen import File TODO: display images in command: show
+# TODO: make arrow keys work (puffer)
+# TODO: make setvolume better with setvolume 50
+# TODO: truncate input string
 
 dirpath = os.path.dirname(__file__)
 current_play_number = 0
@@ -43,6 +46,7 @@ class Directory(object):
         repeat = True
 
         while repeat:
+            os.system('clear')  # only in terminal
             print('Select from 0 t', end='', flush=True)
             print(len(os.listdir(os.getcwd())) + 1)
             print("\n-1:/Exit from file/directory search")
@@ -56,7 +60,6 @@ class Directory(object):
             try:
                 sub_folder_number = int(input())
             except ValueError:
-                os.system('clear')  # only in terminal
                 print("Wrong input, try again")
 
             if sub_folder_number == 0:
@@ -72,7 +75,7 @@ class Directory(object):
 class PlayList(object):
     playlist = list()
 
-    def add(self):
+    def add(self):#TODO: recursive adding
         length = len(os.listdir(os.getcwd()))
         i = 0
         while i < length:
@@ -129,6 +132,10 @@ class Song(object):
             print('Album: ' + audiofile.tag.album)
             print('Track number: ' + str(int(audiofile.tag.track_num[0])))
             print('Path:  ' + PlayList.playlist[current_play_number])
+
+            #file = File(PlayList.playlist[current_play_number])  # mutagen can automatically detect format and type of tags
+            #artwork = file.tags['APIC:'].data  # access APIC frame and grab the image
+            #os.system('okular ' + artwork)
         except IndexError:
             print("|EE| Please define first a playlist")
 
@@ -261,19 +268,21 @@ while current_input != "exit":
             player_not_defined()
 
     elif current_input == "getvolume":
-        print("|::| Volume:  ", end="")
         try:
+            print("|::| Volume:  ", end="")
             print(p.audio_get_volume(), end="")
         except NameError:
             player_not_defined()
         print("%")
 
     elif current_input == "setvolume":
-        print("Set Volume to[%, 0-100]: ", end="")
         try:
+            print("Set Volume to[%, 0-100]: ", end="")
             p.audio_set_volume(int(input()))
         except NameError:
             player_not_defined()
+        except ValueError:
+            print("Please enter a valid number")
 
     elif current_input == "skip":
         dummy = False  #TODO: find out why threading.Thread always needs an argument
