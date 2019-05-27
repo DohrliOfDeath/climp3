@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import vlc
 import time
@@ -32,14 +33,16 @@ class Directory(object):
 
         os.chdir('/' + new_path[::-1])
 
-    def cd_subfolder(self, subfolder_number):
+    def cd_subfolder(self, subfolder_number, is_reccursive):
         os.system('clear')  # only in terminal
         subfolder_name = os.listdir(os.getcwd())[subfolder_number - 1]
-        try:
+        if is_reccursive:
             os.chdir(os.getcwd() + "/" + subfolder_name)
-        except OSError:
-            PlayList.add_song(PlayList, subfolder_number - 1)
-
+        else:
+            try:
+                os.chdir(os.getcwd() + "/" + subfolder_name)
+            except OSError:
+                PlayList.add_song(PlayList, subfolder_number - 1)
         print(os.getcwd())
 
     def input_directories(self):
@@ -69,21 +72,29 @@ class Directory(object):
                 repeat = False
 
             elif sub_folder_number <= len(os.listdir(os.getcwd())) and sub_folder_number > 0:
-                Directory.cd_subfolder(Directory, sub_folder_number)
+                Directory.cd_subfolder(Directory, sub_folder_number, False)
 
 
 class PlayList(object):
     playlist = list()
 
-    def add(self):#TODO: recursive adding
+    def add(self):
         length = len(os.listdir(os.getcwd()))
         i = 0
         while i < length:
             filename, file_extension = os.path.splitext(os.listdir(os.getcwd())[i])
             if file_extension == ".mp3":
                 PlayList.playlist.append(os.getcwd() + "/" + os.listdir(os.getcwd())[i])
+            elif len(file_extension) == 0: # recursive adding
+                try:
+                    Directory.cd_subfolder(Directory, i, True)
+                except:
+                    i += 1
+                    continue
+                PlayList.add(PlayList)
 
             i += 1
+        Directory.cd_go_back(Directory)
 
     def add_song(self, file_number):
         filename, file_extension = os.path.splitext(os.listdir(os.getcwd())[file_number])
@@ -97,7 +108,7 @@ class PlayList(object):
         os.system('clear')  # only in terminal
         i = 0
         while i < len(PlayList.playlist):
-            print(i, end="")
+            print(i + 1, end="")
             print(".|: " + PlayList.playlist[i])
             i += 1
 
@@ -133,9 +144,9 @@ class Song(object):
             print('Track number: ' + str(int(audiofile.tag.track_num[0])))
             print('Path:  ' + PlayList.playlist[current_play_number])
 
-            #file = File(PlayList.playlist[current_play_number])  # mutagen can automatically detect format and type of tags
-            #artwork = file.tags['APIC:'].data  # access APIC frame and grab the image
-            #os.system('okular ' + artwork)
+            # file = File(PlayList.playlist[current_play_number])  # mutagen can automatically detect format and type of tags
+            # artwork = file.tags['APIC:'].data  # access APIC frame and grab the image
+            # os.system('okular ' + artwork)
         except IndexError:
             print("|EE| Please define first a playlist")
 
@@ -187,6 +198,7 @@ def player_not_defined():
 print("\n|;;| Current Directory: " + os.getcwd())
 current_input = ""
 current_song_duration = 0
+input_puffer = list()
 while current_input != "exit":
     print(">", end="")
     try:
@@ -194,6 +206,7 @@ while current_input != "exit":
     except ValueError:
         print("Wrong input, try again")
 
+    #input_puffer.add(current_input)
     if current_input == "cd":
         Directory.input_directories(Directory)
 
