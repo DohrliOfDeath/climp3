@@ -4,7 +4,8 @@ import vlc
 import time
 import threading
 import eyed3
-#from mutagen import File TODO: display images in command: show
+import random
+#from mutagen import File TODO: display time and images in command: show
 # TODO: make arrow keys work (puffer)
 # TODO: make setvolume better with setvolume 50
 # TODO: truncate input string
@@ -149,6 +150,9 @@ class Song(object):
             # os.system('okular ' + artwork)
         except IndexError:
             print("|EE| Please define first a playlist")
+        except TypeError:
+            print("Can't Show Tags of MP3 File when there aren't any")
+            print(PlayList.playlist[current_input])
 
     def play(self, dummy):
         global p
@@ -157,19 +161,22 @@ class Song(object):
         audiofile = eyed3.load(PlayList.playlist[current_play_number])
 
         print("", end="\r")
-        print('|' + str(current_play_number + 1) + '::' + str(len(PlayList.playlist))+ '| Now playing: ' + audiofile.tag.artist + ' - ' + audiofile.tag.title, end="")
+        try:
+            print('|' + str(current_play_number + 1) + '::' + str(len(PlayList.playlist))+ '| Now playing: ' + audiofile.tag.artist + ' - ' + audiofile.tag.title, end="")
+        except TypeError:
+            print('|' + str(current_play_number + 1) + '::' + str(len(PlayList.playlist))+ '| Now playing: ' + PlayList.playlist[current_play_number], end="")
         print('\n>', end="")
         p = vlc.MediaPlayer("file://" + PlayList.playlist[current_play_number])
         p.play()
 
-        while str(p.get_state()) != "State.Ended":
+        duration = audiofile.info.time_secs
+        for i in range(0, int(duration)):
             time.sleep(1)
 
-        if current_play_number + 1 < len(PlayList.playlist):
-            print()
+        if len(PlayList.playlist) != 0 and current_play_number + 1 < len(PlayList.playlist):
             current_play_number += 1
-            thr1 = threading.Thread(target=Song.play, args=(object, dummy), kwargs={})
-            thr1.start()
+            thr = threading.Thread(target=Song.play, args=(Song, dummy), kwargs={})
+            thr.start()
         else:
             print("\n|::| Finished playing Playlist", end="")
 
@@ -206,7 +213,7 @@ while current_input != "exit":
     except ValueError:
         print("Wrong input, try again")
 
-    #input_puffer.add(current_input)
+    input_puffer.append(current_input) # to make arrow keys work
     if current_input == "cd":
         Directory.input_directories(Directory)
 
@@ -314,6 +321,16 @@ while current_input != "exit":
         current_play_number = -1
         PlayList.sort(PlayList)
 
+    elif current_input == "shufflep":
+        try:
+            p.stop()
+        except:
+            print("", end="")
+
+        current_play_number = -1
+        print("shuffling Playlist")
+        random.shuffle(PlayList.playlist);
+
     elif current_input == "help":
         print("possible inputs:")
         print("  |exit          |stops music and exits mp3Player")
@@ -335,6 +352,7 @@ while current_input != "exit":
         print("  |setvolume     |sets  volume")
         print("  |sortp         |stops music and sorts playlist after track number")
         print("  |skipto        |stops music and skips to entered song number")
+        print("  |shufflep      |stops music and randomizes playlist")
 
     elif current_input == "skipto":
         Song.skipto(Song)
