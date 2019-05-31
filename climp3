@@ -5,6 +5,7 @@ import time
 import threading
 import eyed3
 import random
+import math
 #from mutagen import File TODO: display time and images in command: show
 # TODO: make arrow keys work (puffer)
 # TODO: make setvolume better with setvolume 50
@@ -12,13 +13,11 @@ import random
 
 dirpath = os.path.dirname(__file__)
 current_play_number = 0
-
+current_duration = 0;
 
 class Directory(object):
     def cd_go_back(self):
         os.system('clear')  # only in terminal
-        print("going back")
-
         old_path = os.getcwd()
         i = len(old_path) - 1
         is_before_new_path = True
@@ -48,12 +47,11 @@ class Directory(object):
 
     def input_directories(self):
         repeat = True
-
         while repeat:
             os.system('clear')  # only in terminal
-            print('Select from 0 t', end='', flush=True)
+            print('Select from 0 to ', end='', flush=True)
             print(len(os.listdir(os.getcwd())) + 1)
-            print("\n-1:/Exit from file/directory search")
+            print("-1:/Exit from file/directory search")
             print("0:/..")
             i = 1
             for o in os.listdir(os.getcwd()):  # outputs the current subfolders
@@ -72,7 +70,7 @@ class Directory(object):
             elif sub_folder_number == -1:
                 repeat = False
 
-            elif sub_folder_number <= len(os.listdir(os.getcwd())) and sub_folder_number > 0:
+            elif len(os.listdir(os.getcwd())) >= sub_folder_number > 0:
                 Directory.cd_subfolder(Directory, sub_folder_number, False)
 
 
@@ -169,16 +167,24 @@ class Song(object):
         p = vlc.MediaPlayer("file://" + PlayList.playlist[current_play_number])
         p.play()
 
-        duration = audiofile.info.time_secs
+        duration = int(audiofile.info.time_secs)
+        global current_duration
+        current_duration = duration
         for i in range(0, int(duration)):
+            while str(p.get_state()) == "State.Paused" or str(p.get_state()) == "State.Stopped":
+                time.sleep(1)
             time.sleep(1)
+            if duration != current_duration:  # Trick to kill thread when a song is skipped: when the duration
+                return  # f the skipped song is not the same as the duration of the song currently played
 
         if len(PlayList.playlist) != 0 and current_play_number + 1 < len(PlayList.playlist):
             current_play_number += 1
             thr = threading.Thread(target=Song.play, args=(Song, dummy), kwargs={})
             thr.start()
         else:
-            print("\n|::| Finished playing Playlist", end="")
+            print("\n|::| Finished playing Playlist")
+            print(">", end="")
+
 
     def skipto(self):
         global current_play_number
