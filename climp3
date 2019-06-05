@@ -155,7 +155,6 @@ class Song(object):
     def play(self, dummy):
         global p
         global current_play_number
-
         audiofile = eyed3.load(PlayList.playlist[current_play_number])
 
         print("", end="\r")
@@ -182,9 +181,7 @@ class Song(object):
             thr = threading.Thread(target=Song.play, args=(Song, dummy), kwargs={})
             thr.start()
         else:
-            print("\n|::| Finished playing Playlist")
-            print(">", end="")
-
+            print("\n|::| Finished playing Playlist\n>", end="")
 
     def skipto(self):
         global current_play_number
@@ -313,10 +310,15 @@ while current_input != "exit":
     elif current_input == "skip":
         dummy = False  #TODO: find out why threading.Thread always needs an argument
         p.stop()
-        if len(PlayList.playlist) != 0 and current_play_number + 1 < len(PlayList.playlist):
-            current_play_number += 1
-            thr = threading.Thread(target=Song.play, args=(Song, dummy), kwargs={})
-            thr.start()
+        if current_play_number + 1 >= len(PlayList.playlist):
+            print("Finished playing playlist")
+            p.stop()
+            current_play_number = 0;
+        else:
+            if len(PlayList.playlist) != 0 and current_play_number + 1 < len(PlayList.playlist):
+                current_play_number += 1
+                thr = threading.Thread(target=Song.play, args=(Song, dummy), kwargs={})
+                thr.start()
 
     elif current_input == "sortp":
         try:
@@ -324,7 +326,7 @@ while current_input != "exit":
         except:
             print("", end="")
 
-        current_play_number = -1
+        current_play_number = 0
         PlayList.sort(PlayList)
 
     elif current_input == "shufflep":
@@ -333,7 +335,7 @@ while current_input != "exit":
         except:
             print("", end="")
 
-        current_play_number = -1
+        current_play_number = 0
         print("shuffling Playlist")
         random.shuffle(PlayList.playlist);
 
