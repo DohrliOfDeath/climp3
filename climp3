@@ -5,15 +5,13 @@ import time
 import threading
 import eyed3
 import random
-import math
-#from mutagen import File TODO: display time and images in command: show
-# TODO: make arrow keys work (puffer)
-# TODO: make setvolume better with setvolume 50
-# TODO: truncate input string
+# from mutagen import File TODO: display time and images in command: show => maybe background change? nope is gay
+# TODO: make setvolume better for example with setvolume 50
 
 dirpath = os.path.dirname(__file__)
 current_play_number = 0
-current_duration = 0;
+current_duration = 0
+
 
 class Directory(object):
     def cd_go_back(self):
@@ -106,10 +104,22 @@ class PlayList(object):
     def show_playlist(self):
         os.system('clear')  # only in terminal
         i = 0
+        playlist_duration = 0
         while i < len(PlayList.playlist):
+            audiofile = eyed3.load(PlayList.playlist[i])
+            playlist_duration += int(audiofile.info.time_secs)
             print(i + 1, end="")
-            print(".|: " + PlayList.playlist[i])
+            try:
+                print("|: " + audiofile.tag.artist + ' - ' + audiofile.tag.title)
+            except TypeError:
+                print(PlayList.playlist[i])
             i += 1
+        hour = playlist_duration // 3600
+        playlist_duration %= 3600
+        minutes = playlist_duration // 60
+        playlist_duration %= 60
+        seconds = playlist_duration
+        print("Duration: %d:%d:%d" % (hour, minutes, seconds))
 
     def sort(self):
         exchange = True
@@ -143,7 +153,7 @@ class Song(object):
             print('Track number: ' + str(int(audiofile.tag.track_num[0])))
             print('Path:  ' + PlayList.playlist[current_play_number])
 
-            # file = File(PlayList.playlist[current_play_number])  # mutagen can automatically detect format and type of tags
+            # file = File(PlayList.playlist[current_play_number])  # mutagen can automatically detect format  of tags
             # artwork = file.tags['APIC:'].data  # access APIC frame and grab the image
             # os.system('okular ' + artwork)
         except IndexError:
@@ -208,15 +218,14 @@ def player_not_defined():
 print("\n|;;| Current Directory: " + os.getcwd())
 current_input = ""
 current_song_duration = 0
-input_puffer = list()
 while current_input != "exit":
     print(">", end="")
     try:
         current_input = input()
+        current_input.replace(" ", "")
     except ValueError:
         print("Wrong input, try again")
 
-    input_puffer.append(current_input) # to make arrow keys work
     if current_input == "cd":
         Directory.input_directories(Directory)
 
@@ -309,16 +318,49 @@ while current_input != "exit":
 
     elif current_input == "skip":
         dummy = False  #TODO: find out why threading.Thread always needs an argument
-        p.stop()
-        if current_play_number + 1 >= len(PlayList.playlist):
-            print("Finished playing playlist")
+        try:
             p.stop()
-            current_play_number = 0;
+        except NameError:
+            player_not_defined()
+
+        if current_play_number + 1 >= len(PlayList.playlist):
+            current_play_number = 0
+            print("Finished playing playlist")
         else:
             if len(PlayList.playlist) != 0 and current_play_number + 1 < len(PlayList.playlist):
                 current_play_number += 1
                 thr = threading.Thread(target=Song.play, args=(Song, dummy), kwargs={})
                 thr.start()
+
+    elif current_input == "back":
+        dummy = False  #TODO: find out why threading.Thread always needs an argument
+        try:
+            p.stop()
+        except NameError:
+            player_not_defined()
+        if len(PlayList.playlist) != 0 and current_play_number is not 0:
+            current_play_number -= 1
+            thr = threading.Thread(target=Song.play, args=(Song, dummy), kwargs={})
+            thr.start()
+
+    elif current_input == "restart":
+        dummy = False  # TODO: find out why threading.Thread always needs an argument
+        try:
+            p.stop()
+        except NameError:
+            player_not_defined()
+        thr = threading.Thread(target=Song.play, args=(Song, dummy), kwargs={})
+        thr.start()
+
+    elif current_input == "restartp":
+        dummy = False  # TODO: find out why threading.Thread always needs an argument
+        try:
+            p.stop()
+        except NameError:
+            player_not_defined()
+        current_play_number = 0
+        thr = threading.Thread(target=Song.play, args=(Song, dummy), kwargs={})
+        thr.start()
 
     elif current_input == "sortp":
         try:
@@ -352,6 +394,9 @@ while current_input != "exit":
         print("  |stop          |stops the current song")
         print("  |clear         |clears the command line")
         print("  |skip          |skips the current song")
+        print("  |back          |goes back one song")
+        print("  |restart       |restarts current song")
+        print("  |restartp      |restarts playlist")
         print("  |togglemute    |toggles mute of this player")
         print("  |mute          |mutes this player")
         print("  |unmute        |unmutes this player")
