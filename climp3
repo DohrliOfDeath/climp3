@@ -5,7 +5,7 @@ import time
 import threading
 import eyed3
 import random
-
+import fnmatch
 
 class Controls(object):
     current_play_number = 0
@@ -149,7 +149,7 @@ class Directory(object):
         except OSError:
             if not is_recursive:  # doesn't check for songs, only enters subfolders
                 PlayList.add_song(subfolder_number - 1)  # adds song to playlist if number is pressed
-        
+
         print(os.getcwd())
 
     @staticmethod
@@ -220,19 +220,17 @@ class PlayList(object):
     @staticmethod
     def add():
         length = len(os.listdir(os.getcwd()))
-        i: int = 0
-        while i < length:  # going through every file in the subfolder
-            filename, file_extension = os.path.splitext(os.listdir(os.getcwd())[i]) 
-            if file_extension == ".mp3":
-                PlayList.playlist.append(os.getcwd() + "/" + os.listdir(os.getcwd())[i])  # actually adding to playlist
-            elif len(file_extension) == 0:  # recursive adding
-                try:
-                    Directory.cd_subfolder(i, True)  # is_recursive is set to True to prevent adding files
-                except:  # twice len(file_expension) can't differentiate between no file extension and folders
-                    i += 1  # so this is needed, maybe cleaner version in the future?
-                    continue
-                PlayList.add()
-
+        i = 0
+        while i < length:  # going through every file or directory in the current folder
+            rootPath = os.listdir(os.getcwd())[i]
+            pattern = '*.flac'
+            for root, dirs, files in os.walk(rootPath):
+                for filename in fnmatch.filter(files, pattern):
+                	PlayList.playlist.append(os.path.join(root, filename))  # actually adding to playlist
+            pattern = '*.mp3'
+            for root, dirs, files in os.walk(rootPath):
+                for filename in fnmatch.filter(files, pattern):
+                	PlayList.playlist.append(os.path.join(root, filename))  # actually adding to playlist
             i += 1  # while loop looks better than for loop in this application (only in python3)
 
     @staticmethod
@@ -388,7 +386,7 @@ def player_not_defined():
 
 
 print("\n|;;| Current Directory: " + os.getcwd())
-while Controls.current_input is not "exit":
+while Controls.current_input is not "exit": # this while could be True because the effective exit is with a elif and break
     print(">", end="")
     try:
         Controls.current_input = input()
@@ -449,7 +447,7 @@ while Controls.current_input is not "exit":
 
     elif Controls.current_input == "setvolume":
         Controls.setvolume()
-    
+
     elif Controls.current_input[:9] == "setvolume":
         Controls.setvolume2()
 
@@ -503,7 +501,7 @@ while Controls.current_input is not "exit":
     elif Controls.current_input[:6] == "skipto":
         Song.skipto2()
 
-    else:
-        print("",end="")  # works great for debugging
+    elif Controls.current_input == "exit":
+        break
 
 os.system('pkill python3')
