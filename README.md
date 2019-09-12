@@ -1,6 +1,10 @@
 # climp3
 A MP3/FLAC Player for console, headless only, written in python3 (linux only)
 
+Dependencies:
+    tinytag
+    python-vlc
+
 install:
 
   Download the File: climp3
