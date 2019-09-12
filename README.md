@@ -4,13 +4,13 @@ A MP3 Player for console, headless only, written in python3 (linux only)
 
 Dependencies:
 
-  python3 (.7)
+  python3 (.8)
   
   python-vlc
   
   python3-pip
     
-  eyeD3
+  TinyTag
   
   
 
