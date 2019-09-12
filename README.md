@@ -26,7 +26,7 @@ start:
  
 
 
-is currently only tested on Debian 10 (unstable), Kubuntu 19.04 and Slackware 14.2
+is currently only tested on Debian 10 (unstable), Kubuntu 19.04
 
 
 
