@@ -1,0 +1,2 @@
+tinytag==1.2.2
+python-vlc==3.0.7110
