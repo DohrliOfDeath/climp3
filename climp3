@@ -7,6 +7,7 @@ import eyed3
 import random
 import fnmatch
 
+
 class Controls(object):
     current_play_number = 0
     current_duration = 0
@@ -222,25 +223,24 @@ class PlayList(object):
         length = len(os.listdir(os.getcwd()))
         i = 0
         while i < length:  # going through every file or directory in the current folder
-            rootPath = os.listdir(os.getcwd())[i]
+            PlayList.add_song(i)
+            root_path = os.listdir(os.getcwd())[i]
             pattern = '*.flac'
-            for root, dirs, files in os.walk(rootPath):
+            for root, dirs, files in os.walk(root_path):
                 for filename in fnmatch.filter(files, pattern):
-                	PlayList.playlist.append(os.path.join(root, filename))  # actually adding to playlist
+                    PlayList.playlist.append(os.path.join(root, filename))  # actually adding to playlist
             pattern = '*.mp3'
-            for root, dirs, files in os.walk(rootPath):
+            for root, dirs, files in os.walk(root_path):
                 for filename in fnmatch.filter(files, pattern):
-                	PlayList.playlist.append(os.path.join(root, filename))  # actually adding to playlist
+                    PlayList.playlist.append(os.path.join(root, filename))  # actually adding to playlist
             i += 1  # while loop looks better than for loop in this application (only in python3)
 
     @staticmethod
     def add_song(file_number):
         filename, file_extension = os.path.splitext(os.listdir(os.getcwd())[file_number])
-        if file_extension == ".mp3":
+        if file_extension == ".mp3" or file_extension == ".flac":
             PlayList.playlist.append(os.getcwd() + "/" + os.listdir(os.getcwd())[file_number])
-            print("|::| Adding file number " + str(file_number + 1) + " to Playlist")
-        else:  # not needed to check for folder, because this is only called in cd_subfolder
-            print("|EE| ITEM IS NOT A .mp3 NOR A FOLDER\n\n")
+            # print("|::| Adding file number " + str(file_number + 1) + " to Playlist")
 
     @staticmethod
     def format_time(whole_time):
