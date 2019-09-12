@@ -3,7 +3,10 @@ import os
 import vlc
 import time
 import threading
+from tinytag import TinyTag
+
 import eyed3
+
 import random
 import fnmatch
 
@@ -200,11 +203,10 @@ class PlayList(object):
 
     @staticmethod
     def sort_playlist():
-        try:  # try except to stop the song that is currently playing, but doesn't matter if no song is playing
-            Song.player.stop()
-        except:
-            pass
-
+        # try:  # try except to stop the song that is currently playing, but doesn't matter if no song is playing
+        Song.player.stop()
+        # except:  # IS NOT NEEDED
+           # pass
         Controls.current_play_number = 0
         PlayList.sort()
 
@@ -256,24 +258,19 @@ class PlayList(object):
         os.system('clear')  # only in terminal
         i = 0
         playlist_duration = 0
-        otherFormat = False
 
         while i < len(PlayList.playlist):  # every song in the playlist
-            audiofile = eyed3.load(PlayList.playlist[i])
-            try:
-                playlist_duration += int(audiofile.info.time_secs)  # count playlist duration
-            except AttributeError:
-                pass  # not working with .flac
-                otherFormat = True
+            audiofile = TinyTag.get(PlayList.playlist[i])
+            playlist_duration += int(audiofile.duration)  # count playlist duration
 
             print(str(i + 1) + "|: ", end="")
             try:
-                print(audiofile.tag.artist + ' - ' + audiofile.tag.title)
-            except (TypeError, AttributeError):  # if there are no tags
+                print(audiofile.artist + ' - ' + audiofile.title)
+            except TypeError:  # if there are no tags
                 print(PlayList.playlist[i])  # just print the filename with the whole file path
             i += 1
-        if not otherFormat:
-            PlayList.format_time(playlist_duration)
+
+        PlayList.format_time(playlist_duration)
 
     @staticmethod
     def sort():
@@ -283,25 +280,24 @@ class PlayList(object):
             while passnum > 0 and exchange:
                 exchange = False
                 for i1 in range(len(PlayList.playlist) - 1):
-                    audiofile1 = eyed3.load(PlayList.playlist[i1])
-                    audiofile2 = eyed3.load(PlayList.playlist[i1 + 1])
-                    if int(audiofile1.tag.track_num[0]) > int(audiofile2.tag.track_num[0]):
+                    audiofile1 = TinyTag.get(PlayList.playlist[i1])
+                    audiofile2 = TinyTag(PlayList.playlist[i1 + 1])
+                    if int(audiofile1.track[0]) > int(audiofile2.track[0]):
                         exchange = True
                         temp = PlayList.playlist[i1]
                         PlayList.playlist[i1] = PlayList.playlist[i1 + 1]
                         PlayList.playlist[i1 + 1] = temp
                 passnum -= 1
-        except:  # eyed3 fails on specific mp3 files no idea why
-            print("|EE| Sorting failed, check your mp3Tags, but could also be a problem of eyed3,", end="")
+        except:  # PROBLEM FROM EYED3, HOPEFULLY NOT WITH TINYTAG
+            print("|EE| Sorting failed, check your mp3Tags, but could also be a problem of TinyTag,", end="")
             print(" I have no control over neither")
 
     @staticmethod
     def shuffle_playlist():
-        try:  # try except to stop the song that is currently playing, but doesn't matter if no song is playing
-            Song.player.stop()
-        except:
-            pass
-
+        # try:  # try except to stop the song that is currently playing, but doesn't matter if no song is playing
+        Song.player.stop()
+        # except: # NOT NEEDED
+        #     pass
         Controls.current_play_number = 0
         print("shuffling Playlist")
         random.shuffle(PlayList.playlist)
@@ -317,11 +313,11 @@ class Song(object):
         except NameError:
             player_not_defined()
             return
-        try:
-            audiofile = eyed3.load(PlayList.playlist[Controls.current_play_number])
-            print(audiofile.tag.artist + ' - ' + audiofile.tag.title)
-            print('Album: ' + audiofile.tag.album)
-            print('Track number: ' + str(int(audiofile.tag.track_num[0])))
+        try:  # TODO: display all working Tags
+            audiofile = TinyTag.get(PlayList.playlist[Controls.current_play_number])
+            print(audiofile.artist + ' - ' + audiofile.title)
+            print('Album: ' + audiofile.album)
+            print('Track number: ' + str(int(audiofile.track[0])))
             print('Path:  ' + PlayList.playlist[Controls.current_play_number])
         except IndexError:
             print("|EE| Please define first a playlist")
@@ -330,12 +326,12 @@ class Song(object):
 
     @staticmethod
     def play(dummy):
-        audiofile = eyed3.load(PlayList.playlist[Controls.current_play_number])
-
+        audiofile = TinyTag.get(PlayList.playlist[Controls.current_play_number])
         print("", end="\r")
+
         try:
             print('|' + str(Controls.current_play_number + 1) + '::' + str(len(PlayList.playlist)) + '| Now playing: ' +
-                  audiofile.tag.artist + ' - ' + audiofile.tag.title, end="")
+                  audiofile.artist + ' - ' + audiofile.title, end="")
         except (TypeError, AttributeError):
             print('|' + str(Controls.current_play_number + 1) + '::' + str(len(PlayList.playlist)) + '| Now playing: ' +
                   PlayList.playlist[Controls.current_play_number], end="")
@@ -343,7 +339,7 @@ class Song(object):
         Song.player = vlc.MediaPlayer("file://" + PlayList.playlist[Controls.current_play_number])
         Song.player.play()
 
-        duration = int(audiofile.info.time_secs)
+        duration = int(audiofile.duration)
         Controls.current_duration = duration
         for i in range(0, int(duration)):
             while str(Song.player.get_state()) == "State.Paused" or str(Song.player.get_state()) == "State.Stopped":
@@ -361,7 +357,7 @@ class Song(object):
 
     @staticmethod
     def skipto():
-        print("Skip to track number: ", end="")  # TODO: do the same as with setvolume
+        print("Skip to track number: ", end="")
         try:
             Song.player.stop()
             Controls.current_play_number = int(input()) - 1
@@ -383,8 +379,8 @@ class Song(object):
             return
 
         if len(PlayList.playlist) is not 0 and Controls.current_play_number < len(PlayList.playlist):
-            thr = threading.Thread(target=Song.play, args=(dummy, ), kwargs={})
-            thr.start()  # start new thread, old thread get killed automatically by trick
+            thr1 = threading.Thread(target=Song.play, args=(dummy, ), kwargs={})
+            thr1.start()  # start new thread, old thread get killed automatically by trick
         else:
             print("Invalid number entered")
 
