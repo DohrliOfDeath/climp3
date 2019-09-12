@@ -203,7 +203,7 @@ class PlayList(object):
         try:  # try except to stop the song that is currently playing, but doesn't matter if no song is playing
             Song.player.stop()
         except:
-            print("", end="")
+            pass
 
         Controls.current_play_number = 0
         PlayList.sort()
@@ -213,7 +213,7 @@ class PlayList(object):
         try:
             Song.player.stop()
         except NameError:
-            print("", end="")
+            pass
         print("|::| deleting the current playlist")
         Controls.current_play_number = 0
         PlayList.playlist.clear()
@@ -256,16 +256,24 @@ class PlayList(object):
         os.system('clear')  # only in terminal
         i = 0
         playlist_duration = 0
+        otherFormat = False
+
         while i < len(PlayList.playlist):  # every song in the playlist
             audiofile = eyed3.load(PlayList.playlist[i])
-            playlist_duration += int(audiofile.info.time_secs)  # count playlist duration
+            try:
+                playlist_duration += int(audiofile.info.time_secs)  # count playlist duration
+            except AttributeError:
+                pass  # not working with .flac
+                otherFormat = True
+
             print(str(i + 1) + "|: ", end="")
             try:
                 print(audiofile.tag.artist + ' - ' + audiofile.tag.title)
-            except TypeError:  # if there are no tags
+            except (TypeError, AttributeError):  # if there are no tags
                 print(PlayList.playlist[i])  # just print the filename with the whole file path
             i += 1
-        PlayList.format_time(playlist_duration)
+        if not otherFormat:
+            PlayList.format_time(playlist_duration)
 
     @staticmethod
     def sort():
@@ -292,7 +300,7 @@ class PlayList(object):
         try:  # try except to stop the song that is currently playing, but doesn't matter if no song is playing
             Song.player.stop()
         except:
-            print("", end="")
+            pass
 
         Controls.current_play_number = 0
         print("shuffling Playlist")
@@ -328,7 +336,7 @@ class Song(object):
         try:
             print('|' + str(Controls.current_play_number + 1) + '::' + str(len(PlayList.playlist)) + '| Now playing: ' +
                   audiofile.tag.artist + ' - ' + audiofile.tag.title, end="")
-        except TypeError:
+        except (TypeError, AttributeError):
             print('|' + str(Controls.current_play_number + 1) + '::' + str(len(PlayList.playlist)) + '| Now playing: ' +
                   PlayList.playlist[Controls.current_play_number], end="")
         print('\n>', end="")
