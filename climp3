@@ -4,9 +4,6 @@ import vlc
 import time
 import threading
 from tinytag import TinyTag
-
-import eyed3
-
 import random
 import fnmatch
 
@@ -39,8 +36,11 @@ class Controls(object):
     @staticmethod
     def setvolume():
         try:
-            print("Set Volume to[%, 0-100]: ", end="")
-            Song.player.audio_set_volume(int(input()))
+            print("Set Volume to[%, 1-100]: ", end="")
+            next_volume = int(input())
+            if next_volume is 0:
+                next_volume = 1
+            Song.player.audio_set_volume(next_volume)
         except NameError:
             player_not_defined()
         except ValueError:
@@ -50,7 +50,10 @@ class Controls(object):
     @staticmethod
     def setvolume2():
         try:
-            Song.player.audio_set_volume(int(Controls.current_input[10:]))  # probably needed to set it to [10:]
+            next_volume = int(Controls.current_input[10:])
+            if next_volume is 0:
+                next_volume = 1
+            Song.player.audio_set_volume(next_volume)
         except NameError:
             player_not_defined()
         except ValueError:
@@ -202,15 +205,6 @@ class PlayList(object):
         thr.start()
 
     @staticmethod
-    def sort_playlist():
-        # try:  # try except to stop the song that is currently playing, but doesn't matter if no song is playing
-        Song.player.stop()
-        # except:  # IS NOT NEEDED
-           # pass
-        Controls.current_play_number = 0
-        PlayList.sort()
-
-    @staticmethod
     def delete_playlist():
         try:
             Song.player.stop()
@@ -274,6 +268,8 @@ class PlayList(object):
 
     @staticmethod
     def sort():
+        Song.player.stop()
+        Controls.current_play_number = 0
         exchange = True
         passnum = len(PlayList.playlist)
         try:
@@ -281,14 +277,14 @@ class PlayList(object):
                 exchange = False
                 for i1 in range(len(PlayList.playlist) - 1):
                     audiofile1 = TinyTag.get(PlayList.playlist[i1])
-                    audiofile2 = TinyTag(PlayList.playlist[i1 + 1])
-                    if int(audiofile1.track[0]) > int(audiofile2.track[0]):
+                    audiofile2 = TinyTag.get(PlayList.playlist[i1 + 1])
+                    if int(audiofile1.track) > int(audiofile2.track):
                         exchange = True
                         temp = PlayList.playlist[i1]
                         PlayList.playlist[i1] = PlayList.playlist[i1 + 1]
                         PlayList.playlist[i1 + 1] = temp
                 passnum -= 1
-        except:  # PROBLEM FROM EYED3, HOPEFULLY NOT WITH TINYTAG
+        except:
             print("|EE| Sorting failed, check your mp3Tags, but could also be a problem of TinyTag,", end="")
             print(" I have no control over neither")
 
@@ -468,7 +464,7 @@ while Controls.current_input is not "exit": # this while could be True because t
         PlayList.restart_playlist()
 
     elif Controls.current_input == "sortp":
-        PlayList.sort_playlist()
+        PlayList.sort()
 
     elif Controls.current_input == "shufflep":
         PlayList.shuffle_playlist()
