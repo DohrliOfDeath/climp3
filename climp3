@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import os
+from threading import Thread
+
 import vlc
 import time
 import threading
@@ -17,115 +19,96 @@ class Controls(object):
     # noinspection PyCallByClass
     @staticmethod
     def unmute():
-        try:
-            Song.player.audio_set_mute(False)
-        except NameError:
-            player_not_defined()
+        Song.player.audio_set_mute(False)
         print("|::| Unmuted")
 
     @staticmethod
+    def ismute():
+        if Song.player.audio_get_mute() == 0:
+            print("|::|Player is not muted")
+        else:
+            print("|::|Player is muted")
+
+    @staticmethod
+    def mute():
+        Song.player.audio_set_mute(True)
+        print("|::| Muted")
+
+    @staticmethod
+    def toggle_mute():
+        Song.player.audio_toggle_mute()
+        print("|::| Mute toggled")
+
+    @staticmethod
     def getvolume():
-        try:
-            print("|::| Volume:  ", end="")
-            print(Song.player.audio_get_volume(), end="")
-        except NameError:
-            player_not_defined()
-        print("%")
+        print("|::| Volume:  " + str(Song.player.audio_get_volume()) + "%")
 
     # noinspection PyCallByClass
     @staticmethod
     def setvolume():
+        print("Set Volume to[%, 1-100]: ", end="")
         try:
-            print("Set Volume to[%, 1-100]: ", end="")
             next_volume = int(input())
-            if next_volume is 0:
-                next_volume = 1
-            Song.player.audio_set_volume(next_volume)
-        except NameError:
-            player_not_defined()
+            if next_volume > 100 or next_volume < 1:  # to make sure volume is between 1 and 100
+                raise ValueError
         except ValueError:
             print("Please enter a valid number")
+            return
+        Song.player.audio_set_volume(next_volume)
 
     # noinspection PyCallByClass
     @staticmethod
     def setvolume2():
         try:
             next_volume = int(Controls.current_input[10:])
-            if next_volume is 0:
-                next_volume = 1
-            Song.player.audio_set_volume(next_volume)
-        except NameError:
-            player_not_defined()
+            if next_volume > 100 or next_volume < 1:  # to make sure volume is between 1 and 100
+                raise ValueError
         except ValueError:
             print("Please enter a valid number")
-
-    @staticmethod
-    def ismute():
-        try:
-            if Song.player.audio_get_mute() == 0:
-                print("|::|Player is not muted")
-            else:
-                print("|::|Player is muted")
-        except NameError:
-            player_not_defined()
+            return
+        Song.player.audio_set_volume(next_volume)
 
     @staticmethod
     def skip():
-        dummy = False  # idk why this is needed
-        try:
-            Song.player.stop()
-        except NameError:
-            player_not_defined()
+        dummy1 = False  # idk why this is needed
+        if len(PlayList.playlist) is 0:
+            print("|EE| You have currently no playlist")
             return
+        Song.player.stop()
 
         if Controls.current_play_number + 1 >= len(PlayList.playlist):  # ends playlist
             Controls.current_play_number = 0
             print("Finished playing playlist")
-            return  # to reduce nesting
+            return
 
-        if len(PlayList.playlist) is not 0 and Controls.current_play_number + 1 < len(PlayList.playlist):
-            Controls.current_play_number += 1
-            thr = threading.Thread(target=Song.play, args=(dummy, ), kwargs={})
-            thr.start()  # start next song
+        Controls.current_play_number += 1
+        thr1 = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
+        thr1.start()  # start next song
 
     @staticmethod
     def back():
-        dummy = False  # still no idea
-        try:
-            Song.player.stop()
-        except NameError:
-            player_not_defined()
-        if len(PlayList.playlist) is not 0 and Controls.current_play_number is not 0:
-            Controls.current_play_number -= 1
-            thr = threading.Thread(target=Song.play, args=(dummy, ), kwargs={})
-            thr.start()
+        dummy1 = False  # still no idea
+        if len(PlayList.playlist) is 0:
+            print("|EE| You have currently no playlist")
+            return
+        if Controls.current_play_number is 0:
+            print("|EE| This is the first song in the playlist")
+            return
+
+        Song.player.stop()
+        Controls.current_play_number -= 1
+        thr1 = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
+        thr1.start()
 
     @staticmethod
     def restart():
-        dummy = False  # because of threads
-        try:
-            Song.player.stop()
-        except NameError:
-            player_not_defined()
+        dummy1 = False  # because of threads
+        if len(PlayList.playlist) is 0:
+            print("|EE| You have currently no playlist")
             return
-        thr = threading.Thread(target=Song.play, args=(dummy, ), kwargs={})
-        thr.start()
 
-    @staticmethod
-    def mute():
-        try:
-            Song.player.audio_set_mute(True)
-        except NameError:
-            player_not_defined()
-        print("|::| Muted")
-
-    @staticmethod
-    def toggle_mute():
-        try:
-            Song.player.audio_toggle_mute()
-        except NameError:
-            player_not_defined()
-        print("|::| Mute toggled")
+        thr1 = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
+        thr1.start()
 
 
 class Directory(object):
@@ -150,66 +133,61 @@ class Directory(object):
     @staticmethod
     def cd_subfolder(subfolder_number, is_recursive):
         os.system('clear')  # only in terminal
-        subfolder_name = os.listdir(os.getcwd())[subfolder_number - 1]   # only the number of the subfolder gets passed,
-        try:  # for simplicity reasons
+        subfolder_name = os.listdir(os.getcwd())[subfolder_number - 1]  # only the number of the subfolder gets passed,
+        # for simplicity reasons
+        if not os.path.isdir(subfolder_name) and not is_recursive:  # doesn't check for songs, only enters subfolders
+            PlayList.add_song(subfolder_number - 1)  # adds song to playlist if number is pressed
+            return  # subfolder - 1 is because Playlist.add_song needs only the numbers, too
+
+        try:
             os.chdir(os.getcwd() + "/" + subfolder_name)
         except OSError:
-            if not is_recursive:  # doesn't check for songs, only enters subfolders
-                PlayList.add_song(subfolder_number - 1)  # adds song to playlist if number is pressed
-
-        print(os.getcwd())
+            print("|EE| Unable to enter Folder")
 
     @staticmethod
     def input_directories():
         while True:  # breaks out of loop, instead of creating extra variable, for convenience
             os.system('clear')  # only in terminal
-            print('Select from 0 to ', end='', flush=True)
-            print(len(os.listdir(os.getcwd())) + 1)
+            print('Select from 0 to ' + str(len(os.listdir(os.getcwd()))))
             print("-1:/Exit from file/directory search")
             print("0:/..")
             i = 1  # to be able to print numbers in front of subdirectories
             for current_subfolder in os.listdir(os.getcwd()):  # outputs the current subfolders
                 print(str(i) + ":/" + current_subfolder)
                 i += 1
-            sub_folder_number = 0  # was previously set to 20, changed to 0 because it doesn't matter
+            sub_folder_number = 0
             print(":>", end="")  # line before input
             try:
                 sub_folder_number = int(input())
             except ValueError:
-                print("Wrong input, try again")
+                pass  # Because it's so easily overlooked and pretty annoying
 
             if sub_folder_number == 0:
                 Directory.cd_go_back()
-
             elif sub_folder_number == -1:  # exit the music/folder selector
-                break  # instead of excess variable, looks cleaner
-
+                return
             elif len(os.listdir(os.getcwd())) >= sub_folder_number > 0:
-                Directory.cd_subfolder(sub_folder_number, False)  # changes cwd to selected subfolder
+                Directory.cd_subfolder(sub_folder_number, False)  # changes wd to selected subfolder
 
 
 class PlayList(object):
-    playlist = list()  # used like a global variable without the fuckup of a gloabl variable
+    playlist = list()
 
     @staticmethod
     def restart_playlist():
-        dummy = False
-        try:
-            Song.player.stop()
-        except NameError:
-            player_not_defined()
+        dummy1 = False
+        if len(PlayList.playlist) is 0:
+            print("|EE| You have currently no playlist")
             return
+        Song.player.stop()
 
         Controls.current_play_number = 0
-        thr = threading.Thread(target=Song.play, args=(dummy, ), kwargs={})
-        thr.start()
+        thr1 = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
+        thr1.start()
 
     @staticmethod
     def delete_playlist():
-        try:
-            Song.player.stop()
-        except NameError:
-            pass
+        Song.player.stop()
         print("|::| deleting the current playlist")
         Controls.current_play_number = 0
         PlayList.playlist.clear()
@@ -232,11 +210,10 @@ class PlayList(object):
             i += 1  # while loop looks better than for loop in this application (only in python3)
 
     @staticmethod
-    def add_song(file_number):
-        filename, file_extension = os.path.splitext(os.listdir(os.getcwd())[file_number])
-        if file_extension == ".mp3" or file_extension == ".flac":
-            PlayList.playlist.append(os.getcwd() + "/" + os.listdir(os.getcwd())[file_number])
-            # print("|::| Adding file number " + str(file_number + 1) + " to Playlist")
+    def add_song(file_number):  # is in an extra method because it's needed quite often
+        current_file = os.listdir(os.getcwd())[file_number]
+        if current_file.endswith(".mp3") or current_file.endswith(".flac"):
+            PlayList.playlist.append(os.getcwd() + "/" + current_file)
 
     @staticmethod
     def format_time(whole_time):
@@ -258,9 +235,9 @@ class PlayList(object):
             playlist_duration += int(audiofile.duration)  # count playlist duration
 
             print(str(i + 1) + "|: ", end="")
-            try:
+            if audiofile.artist and audiofile.title:
                 print(audiofile.artist + ' - ' + audiofile.title)
-            except TypeError:  # if there are no tags
+            else:  # if there are no tags
                 print(PlayList.playlist[i])  # just print the filename with the whole file path
             i += 1
 
@@ -271,29 +248,24 @@ class PlayList(object):
         Song.player.stop()
         Controls.current_play_number = 0
         exchange = True
-        passnum = len(PlayList.playlist)
-        try:
-            while passnum > 0 and exchange:
-                exchange = False
-                for i1 in range(len(PlayList.playlist) - 1):
-                    audiofile1 = TinyTag.get(PlayList.playlist[i1])
-                    audiofile2 = TinyTag.get(PlayList.playlist[i1 + 1])
-                    if int(audiofile1.track) > int(audiofile2.track):
-                        exchange = True
-                        temp = PlayList.playlist[i1]
-                        PlayList.playlist[i1] = PlayList.playlist[i1 + 1]
-                        PlayList.playlist[i1 + 1] = temp
-                passnum -= 1
-        except:
-            print("|EE| Sorting failed, check your mp3Tags, but could also be a problem of TinyTag,", end="")
-            print(" I have no control over neither")
+        while exchange:
+            exchange = False
+            for i1 in range(len(PlayList.playlist) - 1):
+                audiofile1 = TinyTag.get(PlayList.playlist[i1])
+                audiofile2 = TinyTag.get(PlayList.playlist[i1 + 1])
+                if audiofile1.track:
+                    print("|EE| At least one song has no valid tags")
+                    return
+
+                if int(audiofile1.track) > int(audiofile2.track):
+                    exchange = True
+                    temp = PlayList.playlist[i1]
+                    PlayList.playlist[i1] = PlayList.playlist[i1 + 1]
+                    PlayList.playlist[i1 + 1] = temp
 
     @staticmethod
     def shuffle_playlist():
-        # try:  # try except to stop the song that is currently playing, but doesn't matter if no song is playing
         Song.player.stop()
-        # except: # NOT NEEDED
-        #     pass
         Controls.current_play_number = 0
         print("shuffling Playlist")
         random.shuffle(PlayList.playlist)
@@ -303,34 +275,61 @@ class Song(object):
     player = vlc.MediaPlayer("")
 
     @staticmethod
-    def show():  # tried to make a progress bar, is not possible by using APIs,
-        try:  # because it would disrupt every other Thread, and wouldn't align/format correctly
-            Song.player.get_state()
-        except NameError:
-            player_not_defined()
+    def show():
+        if len(PlayList.playlist) is 0:
+            print('|EE|: no selected song')
             return
-        try:  # TODO: display all working Tags
-            audiofile = TinyTag.get(PlayList.playlist[Controls.current_play_number])
+        audiofile = TinyTag.get(PlayList.playlist[Controls.current_play_number])
+
+        if audiofile.artist and audiofile.title:
             print(audiofile.artist + ' - ' + audiofile.title)
+        if audiofile.album:
             print('Album: ' + audiofile.album)
+        if audiofile.track:
             print('Track number: ' + str(int(audiofile.track[0])))
-            print('Path:  ' + PlayList.playlist[Controls.current_play_number])
-        except IndexError:
-            print("|EE| Please define first a playlist")
-        except TypeError:
-            print("Can't Show Tags of MP3 File when there aren't any")
+        if audiofile.duration:
+            print('Song duration: ', end='')
+            PlayList.format_time(audiofile.duration)
+        if audiofile.year:
+            print('Release year: ' + str(audiofile.year))
+        if audiofile.genre:
+            print('Genre: ' + audiofile.genre)
+        if audiofile.track_total:
+            print('Total track count: ' + str(audiofile.track_total))
+        if audiofile.albumartist:
+            print('Album artist: ' + audiofile.albumartist)
+        if audiofile.bitrate:
+            print('Track bitrate: ' + str(round(audiofile.bitrate, 1)))
+        if audiofile.composer:
+            print('Composer: ' + audiofile.composer)
+        if audiofile.disc:
+            print('Disc: ' + str(audiofile.disc))
+        if audiofile.disc_total:
+            print('Total disc: ' + str(audiofile.disc_total))
+        if audiofile.comment:
+            print("Track comment: " + audiofile.comment)
+        if audiofile.channels:
+            print('Track channels: ' + str(audiofile.channels))
+        if audiofile.audio_offset:
+            print('Audio offset: ' + str(audiofile.audio_offset))
+        print('Path:  ' + PlayList.playlist[Controls.current_play_number])
 
     @staticmethod
-    def play(dummy):
-        audiofile = TinyTag.get(PlayList.playlist[Controls.current_play_number])
-        print("", end="\r")
+    def play(dummy1):
+        if len(PlayList.playlist) is 0:
+            print("|EE| You have currently no playlist")
+            return
 
-        try:
+        audiofile = TinyTag.get(PlayList.playlist[Controls.current_play_number])
+        print("", end="\r")  # clears current line
+
+        if audiofile.artist and audiofile.title:
             print('|' + str(Controls.current_play_number + 1) + '::' + str(len(PlayList.playlist)) + '| Now playing: ' +
                   audiofile.artist + ' - ' + audiofile.title, end="")
-        except (TypeError, AttributeError):
+        else:  # if there are no tags
             print('|' + str(Controls.current_play_number + 1) + '::' + str(len(PlayList.playlist)) + '| Now playing: ' +
                   PlayList.playlist[Controls.current_play_number], end="")
+
         print('\n>', end="")
         Song.player = vlc.MediaPlayer("file://" + PlayList.playlist[Controls.current_play_number])
         Song.player.play()
@@ -344,53 +343,59 @@ class Song(object):
             if duration is not Controls.current_duration:  # Trick to kill thread when a song is skipped: when the
                 return  # duration of the song is not the same as most recent song, then the thread gets killed
 
-        if len(PlayList.playlist) is not 0 and Controls.current_play_number + 1 < len(PlayList.playlist):
+        if Controls.current_play_number + 1 < len(PlayList.playlist):
             Controls.current_play_number += 1
-            thr = threading.Thread(target=Song.play, args=(dummy, ), kwargs={})
-            thr.start()  # recursive calling to play next song
+            thr1: Thread = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
+            thr1.start()  # recursive calling to play next song
         else:
             print("\n|::| Finished playing Playlist\n>", end="")
 
     @staticmethod
     def skipto():
+        dummy1 = False
+        if len(PlayList.playlist) is 0:
+            print("|EE| You have currently no playlist")
+            return
         print("Skip to track number: ", end="")
+
         try:
-            Song.player.stop()
-            Controls.current_play_number = int(input()) - 1
+            raw_input = int(input()) - 1
+            if raw_input > len(PlayList.playlist) or raw_input < 0:
+                raise TypeError
         except TypeError:
+            print("|EE| Please enter a valid number")
             return
 
-        if len(PlayList.playlist) is not 0 and Controls.current_play_number < len(PlayList.playlist):
-            thr = threading.Thread(target=Song.play, args=(dummy, ), kwargs={})
-            thr.start()  # start new thread, old thread get killed automatically by trick
-        else:
-            print("Invalid number entered")
+        Song.player.stop()
+        Controls.current_play_number = raw_input
+        thr1 = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
+        thr1.start()  # old thread get killed automatically by trick
 
     @staticmethod
     def skipto2():
+        dummy1 = False
+        if len(PlayList.playlist) is 0:
+            print("|EE| You have currently no playlist")
+            return
+
         try:
-            Song.player.stop()
-            Controls.current_play_number = int(Controls.current_input[6:]) - 1
+            raw_input = int(Controls.current_input[6:]) - 1
+            if raw_input > len(PlayList.playlist) or raw_input < 0:
+                raise TypeError
         except TypeError:
             return
 
-        if len(PlayList.playlist) is not 0 and Controls.current_play_number < len(PlayList.playlist):
-            thr1 = threading.Thread(target=Song.play, args=(dummy, ), kwargs={})
-            thr1.start()  # start new thread, old thread get killed automatically by trick
-        else:
-            print("Invalid number entered")
-
-
-def player_not_defined():
-    print("|EE|To access this command, select music with cd and play music with play")
+        Song.player.stop()
+        Controls.current_play_number = raw_input
+        thr1 = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
+        thr1.start()  # start new thread, old thread get killed automatically by trick
 
 
 print("\n|;;| Current Directory: " + os.getcwd())
-while Controls.current_input is not "exit": # this while could be True because the effective exit is with a elif and break
+while Controls.current_input is not "exit":  # this while could be True because the effective exit is with a elif/break
     print(">", end="")
     try:
         Controls.current_input = input()
-        Controls.current_input.replace(" ", "")  # to concentate spaces, only with heading and trailing spaces
     except ValueError:  # if no string is entered (maybe not even possible)
         print("Wrong input, try again")
 
@@ -408,21 +413,14 @@ while Controls.current_input is not "exit": # this while could be True because t
 
     elif Controls.current_input == "play":
         dummy = True  # still no idea why threads always need an extra argument, kinda dumb
-        if len(PlayList.playlist) is not 0:
-            thr = threading.Thread(target=Song.play, args=(dummy, ), kwargs={})
-            thr.start()
+        thr = threading.Thread(target=Song.play, args=(dummy,), kwargs={})
+        thr.start()
 
     elif Controls.current_input == "pause":
-        try:
-            Song.player.pause()
-        except NameError:
-            player_not_defined()
+        Song.player.pause()
 
     elif Controls.current_input == "stop":
-        try:
-            Song.player.stop()
-        except NameError:
-            player_not_defined()
+        Song.player.stop()
 
     elif Controls.current_input == "delp":
         PlayList.delete_playlist()
