@@ -198,7 +198,7 @@ class PlayList(object):
         i = 0
         while i < length:  # going through every file or directory in the current folder
             PlayList.add_song(i)
-            root_path = os.listdir(os.getcwd())[i]
+            root_path = os.getcwd() + "/" + os.listdir(os.getcwd())[i]
             pattern = '*.flac'
             for root, dirs, files in os.walk(root_path):
                 for filename in fnmatch.filter(files, pattern):
