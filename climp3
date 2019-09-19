@@ -253,7 +253,7 @@ class PlayList(object):
             for i1 in range(len(PlayList.playlist) - 1):
                 audiofile1 = TinyTag.get(PlayList.playlist[i1])
                 audiofile2 = TinyTag.get(PlayList.playlist[i1 + 1])
-                if audiofile1.track:
+                if not audiofile1.track:
                     print("|EE| At least one song has no valid tags")
                     return
 
