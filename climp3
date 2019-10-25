@@ -417,10 +417,8 @@ class Song(object):
 
 
 def main(argv):
-    inputfile = ''
-    outputfile = ''
     try:
-         opts, args = getopt.getopt(argv,"hav",["addp", "help", "version"])
+        opts, args = getopt.getopt(argv,"hav",["addp", "help", "version"])
     except getopt.GetoptError:
         Controls.printHelp()
         sys.exit(2)
@@ -437,6 +435,12 @@ def main(argv):
 
 if __name__ == "__main__":
    main(sys.argv[1:])
+
+for i in sys.argv:
+    print(i)
+    if i.endswith(".mp3") or i.endswith(".flac"):
+        PlayList.playlist.append(os.getcwd() + "/" + i)
+
 
 print("\n|;;| Current Directory: " + os.getcwd())
 while Controls.current_input is not "exit":  # this while could be True because the effective exit is with a elif/break
