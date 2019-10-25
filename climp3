@@ -1,20 +1,45 @@
 #!/usr/bin/env python3
 import os
-from threading import Thread
-
 import vlc
 import time
 import threading
 from tinytag import TinyTag
 import random
 import fnmatch
-
+import sys, getopt  # for command line arguments
 
 class Controls(object):
     current_play_number = 0
     current_duration = 0
     current_input = ""  # change globals to properties
     current_song_duration = 0
+
+    @staticmethod
+    def printHelp():
+        print("possible inputs:")
+        print("  |exit          |stops music and exits mp3Player")
+        print("  |play          |starts playlist !When paused, to resume the song type pause again, not play!")
+        print("  |cd            |change directory and select single songs")
+        print("  |addp          |add the whole current directory to the playlist")
+        print("  |showp         |show the current playlist")
+        print("  |delp          |stops music and deletes the current playlist")
+        print("  |show          |shows the current song")
+        print("  |pause         |pauses the current song or resumes it")
+        print("  |stop          |stops the current song")
+        print("  |clear         |clears the command line")
+        print("  |skip          |skips the current song")
+        print("  |back          |goes back one song")
+        print("  |restart       |restarts current song")
+        print("  |restartp      |restarts playlist")
+        print("  |togglemute    |toggles mute of this player")
+        print("  |mute          |mutes this player")
+        print("  |unmute        |unmutes this player")
+        print("  |ismute        |outputs mute status")
+        print("  |getvolume     |outputs volume")
+        print("  |setvolume     |sets  volume")
+        print("  |sortp         |stops music and sorts playlist after track number")
+        print("  |skipto        |stops music and skips to entered song number")
+        print("  |shufflep      |stops music and randomizes playlist")
 
     # noinspection PyCallByClass
     @staticmethod
@@ -391,6 +416,24 @@ class Song(object):
         thr1.start()  # start new thread, old thread get killed automatically by trick
 
 
+def main(argv):
+    inputfile = ''
+    outputfile = ''
+    try:
+        opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
+    except getopt.GetoptError:
+        Controls.printHelp()
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ('-h', "--help"):
+            Controls.printHelp()
+            sys.exit()
+        elif opt in ("-a", "--addp"):
+            print('not added directory to playlist')
+
+if __name__ == "__main__":
+   main(sys.argv[1:])
+
 print("\n|;;| Current Directory: " + os.getcwd())
 while Controls.current_input is not "exit":  # this while could be True because the effective exit is with a elif/break
     print(">", end="")
@@ -502,4 +545,4 @@ while Controls.current_input is not "exit":  # this while could be True because 
     elif Controls.current_input == "exit":
         break
 
-os.system('pkill python3')
+sys.exit(2)
