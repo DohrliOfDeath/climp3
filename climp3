@@ -430,7 +430,7 @@ def main(argv):
             PlayList.add()
             print('added directory to playlist')
         elif opt in ("-v", "--version"):
-            print('Version climp3 1.6.4')
+            print('Version climp3 1.6.0')
             sys.exit()
 
 if __name__ == "__main__":
