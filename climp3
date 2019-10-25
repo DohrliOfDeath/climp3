@@ -420,7 +420,7 @@ def main(argv):
     inputfile = ''
     outputfile = ''
     try:
-        opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
+         opts, args = getopt.getopt(argv,"hav",["addp", "help", "version"])
     except getopt.GetoptError:
         Controls.printHelp()
         sys.exit(2)
@@ -429,7 +429,11 @@ def main(argv):
             Controls.printHelp()
             sys.exit()
         elif opt in ("-a", "--addp"):
-            print('not added directory to playlist')
+            PlayList.add()
+            print('added directory to playlist')
+        elif opt in ("-v", "--version"):
+            print('Version climp3 1.6.4')
+            sys.exit()
 
 if __name__ == "__main__":
    main(sys.argv[1:])
@@ -545,4 +549,4 @@ while Controls.current_input is not "exit":  # this while could be True because 
     elif Controls.current_input == "exit":
         break
 
-sys.exit(2)
+sys.exit()
