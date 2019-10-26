@@ -194,6 +194,25 @@ class Directory(object):
             elif len(os.listdir(os.getcwd())) >= sub_folder_number > 0:
                 Directory.cd_subfolder(sub_folder_number, False)  # changes wd to selected subfolder
 
+    @staticmethod
+    def search():
+        print("Search for: ", end="")
+        pattern=input()
+        pattern = "*" + pattern + "*"
+        root_path=os.getcwd()
+        for root, dirs, files in os.walk(root_path):
+            for filename in fnmatch.filter(files, pattern):
+                print(os.path.join(root, filename).replace(root_path, ''))
+
+    @staticmethod
+    def search2():
+        pattern = Controls.current_input[7:]
+        pattern = "*" + pattern + "*"
+        root_path=os.getcwd()
+        for root, dirs, files in os.walk(root_path):
+            for filename in fnmatch.filter(files, pattern):
+                print(os.path.join(root, filename).replace(root_path, ''))
+
 
 class PlayList(object):
     playlist = list()
@@ -517,6 +536,12 @@ while Controls.current_input is not "exit":  # this while could be True because 
 
     elif Controls.current_input == "shufflep":
         PlayList.shuffle_playlist()
+
+    elif Controls.current_input == "search":
+        Directory.search()
+
+    elif Controls.current_input[:6] == "search":
+        Directory.search2()
 
     elif Controls.current_input == "help":
         print("possible inputs:")
