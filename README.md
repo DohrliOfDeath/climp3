@@ -1,32 +1,22 @@
 # climp3
 A MP3/FLAC Player for console, headless only, written in python3 (linux only)
 
-Dependencies:
+## Dependencies:
     tinytag
     python-vlc
 
-install:
+## Install:
 
   Download the File: climp3
-  
-  navigate with your console to the downloaded file,then:
-  
-   $ sudo chmod +x climp3
-   
-   $ sudo mv climp3 /usr/bin/
-   
+  navigate with your terminal to the downloaded file,then:
 
-start:
-  command:
-  
-  $ climp3
-  
-  if you want an overview of the possible commands, write help
-  
- 
+```
+$ sudo chmod +x climp3
+$ sudo mv climp3 /usr/bin/
+```   
 
-
-is currently only tested on Debian 10 (unstable), Kubuntu 19.04
-
-
-
+## Run:
+```
+$ climp3
+```
+If you want an overview of the possible commands, write help

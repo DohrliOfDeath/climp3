@@ -40,6 +40,7 @@ class Controls(object):
         print("  |sortp         |stops music and sorts playlist after track number")
         print("  |skipto        |stops music and skips to entered song number")
         print("  |shufflep      |stops music and randomizes playlist")
+        print("  |search        |searches for files")
 
     # noinspection PyCallByClass
     @staticmethod
