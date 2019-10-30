@@ -231,6 +231,19 @@ class PlayList(object):
         thr1.start()
 
     @staticmethod
+    def delete_song():
+        Song.player.stop()
+        print("Remove song[s] from playlist: ", end="")
+        pattern = input()
+        PlayList.playlist[:] = [x for x in PlayList.playlist if pattern not in x]
+
+    @staticmethod
+    def delete_song2():
+        Song.player.stop()
+        pattern = Controls.current_input[5:]
+        PlayList.playlist[:] = [x for x in PlayList.playlist if pattern not in x]
+
+    @staticmethod
     def delete_playlist():
         Song.player.stop()
         print("|::| deleting the current playlist")
@@ -496,6 +509,12 @@ while Controls.current_input is not "exit":  # this while could be True because 
     elif Controls.current_input == "delp":
         PlayList.delete_playlist()
 
+    elif Controls.current_input == "dels":
+        PlayList.delete_song()
+
+    elif Controls.current_input[:4] == "dels":
+        PlayList.delete_song2()
+
     elif Controls.current_input == "clear":
         os.system('clear')  # not cross compatible, only in terminal
 
@@ -554,6 +573,7 @@ while Controls.current_input is not "exit":  # this while could be True because 
         Song.skipto2()
 
     elif Controls.current_input == "exit":
+        sys.exit()
         break
 
 sys.exit()
