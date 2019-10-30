@@ -23,6 +23,7 @@ class Controls(object):
         print("  |addp          |add the whole current directory to the playlist")
         print("  |showp         |show the current playlist")
         print("  |delp          |stops music and deletes the current playlist")
+        print("  |dels          |stops music and deletes songs selectable")
         print("  |show          |shows the current song")
         print("  |pause         |pauses the current song or resumes it")
         print("  |stop          |stops the current song")
