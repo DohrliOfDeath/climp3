@@ -13,6 +13,7 @@ class Controls(object):
     current_duration = 0
     current_input = ""  # change globals to properties
     current_song_duration = 0
+    exit_lock = False
 
     @staticmethod
     def printHelp():
@@ -233,14 +234,14 @@ class PlayList(object):
 
     @staticmethod
     def delete_song():
-        Song.player.stop()
+        # Song.player.stop()
         print("Remove song[s] from playlist: ", end="")
         pattern = input()
         PlayList.playlist[:] = [x for x in PlayList.playlist if pattern not in x]
 
     @staticmethod
     def delete_song2():
-        Song.player.stop()
+        # Song.player.stop()
         pattern = Controls.current_input[5:]
         PlayList.playlist[:] = [x for x in PlayList.playlist if pattern not in x]
 
@@ -397,9 +398,11 @@ class Song(object):
         Controls.current_duration = duration
         for i in range(0, int(duration)):
             while str(Song.player.get_state()) == "State.Paused" or str(Song.player.get_state()) == "State.Stopped":
+                if Controls.exit_lock:
+                    return
                 time.sleep(1)  # to not progress the for loop while paused/stopped
             time.sleep(1)
-            if duration is not Controls.current_duration:  # Trick to kill thread when a song is skipped: when the
+            if (duration is not Controls.current_duration) or Controls.exit_lock:  # Trick to kill thread when a song is skipped: when the
                 return  # duration of the song is not the same as most recent song, then the thread gets killed
 
         if Controls.current_play_number + 1 < len(PlayList.playlist):
@@ -574,7 +577,7 @@ while Controls.current_input is not "exit":  # this while could be True because 
         Song.skipto2()
 
     elif Controls.current_input == "exit":
-        sys.exit()
+        Controls.exit_lock = True
         break
 
 sys.exit()
