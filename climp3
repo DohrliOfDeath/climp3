@@ -6,7 +6,9 @@ import threading
 from tinytag import TinyTag
 import random
 import fnmatch
-import sys, getopt  # for command line arguments
+import sys
+import getopt  # for command line arguments
+
 
 class Controls(object):
     current_play_number = 0
@@ -16,7 +18,7 @@ class Controls(object):
     exit_lock = False
 
     @staticmethod
-    def printHelp():
+    def print_help():
         print("possible inputs:")
         print("  |exit          |stops music and exits mp3Player")
         print("  |play          |starts playlist !When paused, to resume the song type pause again, not play!")
@@ -98,7 +100,6 @@ class Controls(object):
 
     @staticmethod
     def skip():
-        dummy1 = False  # idk why this is needed
         if len(PlayList.playlist) == 0:
             print("|EE| You have currently no playlist")
             return
@@ -110,12 +111,10 @@ class Controls(object):
             return
 
         Controls.current_play_number += 1
-        thr1 = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
-        thr1.start()  # start next song
+        threading.Thread(target=Song.play, args=(False,), kwargs={}).start()  # start next song
 
     @staticmethod
     def back():
-        dummy1 = False  # still no idea
         if len(PlayList.playlist) == 0:
             print("|EE| You have currently no playlist")
             return
@@ -125,52 +124,51 @@ class Controls(object):
 
         Song.player.stop()
         Controls.current_play_number -= 1
-        thr1 = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
-        thr1.start()
+        threading.Thread(target=Song.play, args=(True,), kwargs={}).start()
 
     @staticmethod
     def restart():
-        dummy1 = False  # because of threads
         if len(PlayList.playlist) == 0:
             print("|EE| You have currently no playlist")
             return
 
-        thr1 = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
-        thr1.start()
+        threading.Thread(target=Song.play, args=(True,), kwargs={}).start()
 
 
 class Directory(object):
+    patterns = list()
+    patterns.extend(['*.mp3', '*.m4a', '*.flac', '*.wma', '*.wav'])
     @staticmethod
     def cd_go_back():
         os.system('clear')  # only in terminal, not cross-compatible
         old_path = os.getcwd()  # is need to always get one level higher up in the folder system
-        i = len(old_path) - 1
+        current_i = len(old_path) - 1
         is_before_new_path = True
         new_path = ""  # bad name, new_path is the one that is one level higher up in the folder system
-        while i > 0:
-            if old_path[i] == '/':
+        while current_i > 0:
+            if old_path[current_i] == '/':
                 is_before_new_path = False
 
             if not is_before_new_path:
-                new_path += old_path[i]
+                new_path += old_path[current_i]
 
-            i -= 1
+            current_i -= 1
 
         os.chdir('/' + new_path[::-1])  # [::-1] reverses string, because the while loop started from behind
 
     @staticmethod
-    def cd_subfolder(subfolder_number, is_recursive):
+    def cd_subfolder(subfolder_name, is_recursive):
         os.system('clear')  # only in terminal
-        subfolder_name = os.listdir(os.getcwd())[subfolder_number - 1]  # only the number of the subfolder gets passed,
-        # for simplicity reasons
         if not os.path.isdir(subfolder_name) and not is_recursive:  # doesn't check for songs, only enters subfolders
-            PlayList.add_song(subfolder_number - 1)  # adds song to playlist if number is pressed
-            return  # subfolder - 1 is because Playlist.add_song needs only the numbers, too
+            file_extension = os.path.splitext(subfolder_name)[1]
+            if '*' + file_extension in Directory.patterns:
+                PlayList.playlist.append(subfolder_name)
+            return
 
         try:
-            os.chdir(os.getcwd() + "/" + subfolder_name)
+            os.chdir(subfolder_name)
         except OSError:
-            print("|EE| Unable to enter Folder")
+            print("|EE| Unable to enter folder")
 
     @staticmethod
     def input_directories():
@@ -179,10 +177,10 @@ class Directory(object):
             print('Select from 0 to ' + str(len(os.listdir(os.getcwd()))))
             print("-1:/Exit from file/directory search")
             print("0:/..")
-            i = 1  # to be able to print numbers in front of subdirectories
+            current_i = 1  # to be able to print numbers in front of subdirectories
             for current_subfolder in os.listdir(os.getcwd()):  # outputs the current subfolders
-                print(str(i) + ":/" + current_subfolder)
-                i += 1
+                print(str(current_i) + ":/" + current_subfolder)
+                current_i += 1
             sub_folder_number = 0
             print(":>", end="")  # line before input
             try:
@@ -195,14 +193,14 @@ class Directory(object):
             elif sub_folder_number == -1:  # exit the music/folder selector
                 return
             elif len(os.listdir(os.getcwd())) >= sub_folder_number > 0:
-                Directory.cd_subfolder(sub_folder_number, False)  # changes wd to selected subfolder
+                Directory.cd_subfolder(os.getcwd() + '/' + os.listdir(".")[sub_folder_number - 1], False)
 
     @staticmethod
     def search():
         print("Search for: ", end="")
-        pattern=input()
+        pattern = input()
         pattern = "*" + pattern + "*"
-        root_path=os.getcwd()
+        root_path = os.getcwd()
         for root, dirs, files in os.walk(root_path):
             for filename in fnmatch.filter(files, pattern):
                 print(os.path.join(root, filename).replace(root_path, ''))
@@ -211,7 +209,7 @@ class Directory(object):
     def search2():
         pattern = Controls.current_input[7:]
         pattern = "*" + pattern + "*"
-        root_path=os.getcwd()
+        root_path = os.getcwd()
         for root, dirs, files in os.walk(root_path):
             for filename in fnmatch.filter(files, pattern):
                 print(os.path.join(root, filename).replace(root_path, ''))
@@ -222,15 +220,13 @@ class PlayList(object):
 
     @staticmethod
     def restart_playlist():
-        dummy1 = False
         if len(PlayList.playlist) == 0:
             print("|EE| You have currently no playlist")
             return
         Song.player.stop()
 
         Controls.current_play_number = 0
-        thr1 = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
-        thr1.start()
+        threading.Thread(target=Song.play, args=(True,), kwargs={}).start()
 
     @staticmethod
     def delete_song():
@@ -254,25 +250,11 @@ class PlayList(object):
 
     @staticmethod
     def add():
-        length = len(os.listdir(os.getcwd()))
-        i = 0
-        while i < length:  # going through every file or directory in the current folder
-            PlayList.add_song(i)
-            root_path = os.getcwd() + "/" + os.listdir(os.getcwd())[i]
-
-            patterns = list();
-            patterns.extend(['*.flac', '*.mp3', '*.m4a'])
-            for pattern in patterns:
-                for root, dirs, files in os.walk(root_path):
-                    for filename in fnmatch.filter(files, pattern):
-                        PlayList.playlist.append(os.path.join(root, filename))  # actually adding to playlist
-            i += 1  # while loop looks better than for loop in this application (only in python3)
-
-    @staticmethod
-    def add_song(file_number):  # is in an extra method because it's needed quite often
-        current_file = os.listdir(os.getcwd())[file_number]
-        if current_file.endswith(".mp3") or current_file.endswith(".flac"):
-            PlayList.playlist.append(os.getcwd() + "/" + current_file)
+        root_path = os.getcwd()
+        for pattern in Directory.patterns:
+            for root, dirs, files in os.walk(root_path):
+                for filename in fnmatch.filter(files, pattern):
+                    PlayList.playlist.append(os.path.join(root, filename))  # actually adding to playlist
 
     @staticmethod
     def format_time(whole_time):
@@ -286,21 +268,24 @@ class PlayList(object):
     @staticmethod
     def show_playlist():
         os.system('clear')  # only in terminal
-        i = 0
         playlist_duration = 0
+        wrong_type = False
 
-        while i < len(PlayList.playlist):  # every song in the playlist
-            audiofile = TinyTag.get(PlayList.playlist[i])
-            playlist_duration += int(audiofile.duration)  # count playlist duration
-
-            print(str(i + 1) + "|: ", end="")
+        for current_song in PlayList.playlist:
+            audiofile = TinyTag.get(current_song)
+            try:
+                playlist_duration += int(audiofile.duration)
+            except TypeError:
+                wrong_type = True
+            print(str(PlayList.playlist.index(current_song) + 1) + "|: ", end="")
             if audiofile.artist and audiofile.title:
                 print(audiofile.artist + ' - ' + audiofile.title)
             else:  # if there are no tags
-                print(PlayList.playlist[i])  # just print the filename with the whole file path
-            i += 1
+                print(current_song)  # just print the filename with the whole file path
 
         PlayList.format_time(playlist_duration)
+        if wrong_type:
+            print("One or more files gave back a wrong audio duration")
 
     @staticmethod
     def sort():
@@ -401,19 +386,17 @@ class Song(object):
                     return
                 time.sleep(1)  # to not progress the for loop while paused/stopped
             time.sleep(1)
-            if (duration != Controls.current_duration) or Controls.exit_lock:  # Trick to kill thread when a song is skipped: when the
+            if (duration != Controls.current_duration) or Controls.exit_lock:  # Trick to kill thread, when
                 return  # duration of the song is not the same as most recent song, then the thread gets killed
 
         if Controls.current_play_number + 1 < len(PlayList.playlist):
             Controls.current_play_number += 1
-            thr1: Thread = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
-            thr1.start()  # recursive calling to play next song
+            threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # recursive calling to play next song
         else:
             print("\n|::| Finished playing Playlist\n>", end="")
 
     @staticmethod
     def skipto():
-        dummy1 = False
         if len(PlayList.playlist) == 0:
             print("|EE| You have currently no playlist")
             return
@@ -429,12 +412,10 @@ class Song(object):
 
         Song.player.stop()
         Controls.current_play_number = raw_input
-        thr1 = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
-        thr1.start()  # old thread get killed automatically by trick
+        threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # old thread get killed automatically
 
     @staticmethod
     def skipto2():
-        dummy1 = False
         if len(PlayList.playlist) == 0:
             print("|EE| You have currently no playlist")
             return
@@ -448,19 +429,18 @@ class Song(object):
 
         Song.player.stop()
         Controls.current_play_number = raw_input
-        thr1 = threading.Thread(target=Song.play, args=(dummy1,), kwargs={})
-        thr1.start()  # start new thread, old thread get killed automatically by trick
+        threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # start new thread, old thread get killed
 
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv,"hav",["addp", "help", "version"])
+        opts, args = getopt.getopt(argv, "hav", ["addp", "help", "version"])
     except getopt.GetoptError:
-        Controls.printHelp()
+        Controls.print_help()
         sys.exit(2)
     for opt, arg in opts:
         if opt in ('-h', "--help"):
-            Controls.printHelp()
+            Controls.print_help()
             sys.exit()
         elif opt in ("-a", "--addp"):
             PlayList.add()
@@ -469,13 +449,18 @@ def main(argv):
             print('Version climp3 1.6.0')
             sys.exit()
 
-if __name__ == "__main__":
-   main(sys.argv[1:])
 
-for i in sys.argv:
-    print(i)
-    if i.endswith(".mp3") or i.endswith(".flac"):
-        PlayList.playlist.append(os.getcwd() + "/" + i)
+if __name__ == "__main__":
+    main(sys.argv[1:])
+
+
+for argv_song in sys.argv:
+    argv_extension = os.path.splitext(argv_song)[1]
+    if '*' + argv_extension in Directory.patterns:
+        if argv_song[0] != "/":
+            PlayList.playlist.append(os.getcwd() + "/" + argv_song)
+        else:
+            PlayList.playlist.append(argv_song)
 
 
 print("\n|;;| Current Directory: " + os.getcwd())
@@ -499,9 +484,7 @@ while Controls.current_input != "exit":  # this while could be True because the 
         Song.show()
 
     elif Controls.current_input == "play":
-        dummy = True  # still no idea why threads always need an extra argument, kinda dumb
-        thr = threading.Thread(target=Song.play, args=(dummy,), kwargs={})
-        thr.start()
+        threading.Thread(target=Song.play, args=(True,), kwargs={}).start()
 
     elif Controls.current_input == "pause":
         Song.player.pause()
@@ -567,7 +550,7 @@ while Controls.current_input != "exit":  # this while could be True because the 
         Directory.search2()
 
     elif Controls.current_input == "help":
-        Controls.printHelp()
+        Controls.print_help()
 
     elif Controls.current_input == "skipto":
         Song.skipto()
