@@ -1,5 +1,5 @@
 # climp3
-A MP3/FLAC Player for console, headless only, written in python3 (linux only)
+A MP3/FLAC/M4A/WMA Player for console, headless only, written in python3 (linux only)
 
 ## Dependencies:
     tinytag
