@@ -406,6 +406,7 @@ class Song(object):
             if (duration != Controls.current_duration) or Controls.exit_lock:  # Trick to kill thread, when
                 return  # duration of the song is not the same as most recent song, then the thread gets killed
 
+        Song.elapsed_song = 0
         if Controls.current_play_number + 1 < len(PlayList.playlist):
             Controls.current_play_number += 1
             threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # recursive calling to play next song
