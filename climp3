@@ -19,11 +19,11 @@ class Controls(object):
 
     @staticmethod
     def tostart():
-        print("Elapsed Time: " + str(Song.elapsed_song))
+        print("Elapsed Time: " + str(Song.elapsed_song) + " seconds")
 
     @staticmethod
     def toend():
-        print("Time to end of song: " + str(Controls.current_duration - Song.elapsed_song))
+        print("Time to end of song: " + str(Controls.current_duration - Song.elapsed_song) + " seconds")
 
     @staticmethod
     def print_help():
