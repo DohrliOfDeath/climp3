@@ -18,6 +18,14 @@ class Controls(object):
     exit_lock = False
 
     @staticmethod
+    def tostart():
+        print("Elapsed Time: " + str(Song.elapsed_song))
+
+    @staticmethod
+    def toend():
+        print("Time to end of song: " + str(Controls.current_duration - Song.elapsed_song))
+
+    @staticmethod
     def print_help():
         print("possible inputs:")
         print("  |exit          |stops music and exits mp3Player")
@@ -104,6 +112,7 @@ class Controls(object):
             print("|EE| You have currently no playlist")
             return
         Song.player.stop()
+        Song.elapsed_song = 0
 
         if Controls.current_play_number + 1 >= len(PlayList.playlist):  # ends playlist
             Controls.current_play_number = 0
@@ -123,6 +132,7 @@ class Controls(object):
             return
 
         Song.player.stop()
+        Song.elapsed_song = 0
         Controls.current_play_number -= 1
         threading.Thread(target=Song.play, args=(True,), kwargs={}).start()
 
@@ -132,6 +142,7 @@ class Controls(object):
             print("|EE| You have currently no playlist")
             return
 
+        Song.elapsed_song = 0
         threading.Thread(target=Song.play, args=(True,), kwargs={}).start()
 
 
@@ -224,6 +235,7 @@ class PlayList(object):
             print("|EE| You have currently no playlist")
             return
         Song.player.stop()
+        Song.elapsed_song = 0
 
         Controls.current_play_number = 0
         threading.Thread(target=Song.play, args=(True,), kwargs={}).start()
@@ -244,6 +256,7 @@ class PlayList(object):
     @staticmethod
     def delete_playlist():
         Song.player.stop()
+        Song.elapsed_song = 0
         print("|::| deleting the current playlist")
         Controls.current_play_number = 0
         PlayList.playlist.clear()
@@ -290,6 +303,7 @@ class PlayList(object):
     @staticmethod
     def sort():
         Song.player.stop()
+        Song.elapsed_song = 0
         Controls.current_play_number = 0
         exchange = True
         while exchange:
@@ -310,6 +324,7 @@ class PlayList(object):
     @staticmethod
     def shuffle_playlist():
         Song.player.stop()
+        Song.elapsed_song = 0
         Controls.current_play_number = 0
         print("shuffling Playlist")
         random.shuffle(PlayList.playlist)
@@ -317,6 +332,7 @@ class PlayList(object):
 
 class Song(object):
     player = vlc.MediaPlayer("")
+    elapsed_song = 0
 
     @staticmethod
     def show():
@@ -386,6 +402,7 @@ class Song(object):
                     return
                 time.sleep(1)  # to not progress the for loop while paused/stopped
             time.sleep(1)
+            Song.elapsed_song += 1
             if (duration != Controls.current_duration) or Controls.exit_lock:  # Trick to kill thread, when
                 return  # duration of the song is not the same as most recent song, then the thread gets killed
 
@@ -411,6 +428,7 @@ class Song(object):
             return
 
         Song.player.stop()
+        Song.elapsed_song = 0
         Controls.current_play_number = raw_input
         threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # old thread get killed automatically
 
@@ -428,6 +446,7 @@ class Song(object):
             return
 
         Song.player.stop()
+        Song.elapsed_song = 0
         Controls.current_play_number = raw_input
         threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # start new thread, old thread get killed
 
@@ -491,6 +510,7 @@ while Controls.current_input != "exit":  # this while could be True because the 
 
     elif Controls.current_input == "stop":
         Song.player.stop()
+        Song.elapsed_song = 0
 
     elif Controls.current_input == "delp":
         PlayList.delete_playlist()
@@ -557,6 +577,12 @@ while Controls.current_input != "exit":  # this while could be True because the 
 
     elif Controls.current_input[:6] == "skipto":
         Song.skipto2()
+
+    elif Controls.current_input == "toend":
+        Controls.toend()
+
+    elif Controls.current_input == "tostart":
+        Controls.tostart()
 
     elif Controls.current_input == "exit":
         Controls.exit_lock = True
