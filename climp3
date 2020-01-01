@@ -8,6 +8,8 @@ import random
 import fnmatch
 import sys
 import getopt  # for command line arguments
+from pynput.keyboard import Key, KeyCode, Listener
+
 
 
 class Controls(object):
@@ -142,6 +144,7 @@ class Controls(object):
             print("|EE| You have currently no playlist")
             return
 
+        Song.player.stop()
         Song.elapsed_song = 0
         threading.Thread(target=Song.play, args=(True,), kwargs={}).start()
 
@@ -376,6 +379,8 @@ class Song(object):
 
     @staticmethod
     def play(dummy1):
+        if str(Song.player.get_state()) == "State.Playing":
+            return
         if len(PlayList.playlist) == 0:
             print("|EE| You have currently no playlist")
             return
@@ -452,7 +457,27 @@ class Song(object):
         threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # start new thread, old thread get killed
 
 
-def main(argv):
+def media_buttons(key):
+    if not hasattr(key, 'vk'):
+        return
+    if key.vk == 269025047:
+        Controls.skip()
+    elif key.vk == 269025046:
+        Controls.back()
+    elif key.vk == 269025045:
+        if str(Song.player.get_state()) == "State.Playing":
+            Song.player.stop()
+        elif str(Song.player.get_state()) == "State.Stopped":
+            threading.Thread(target=Song.play, args=(True,), kwargs={}).start()
+    elif key.vk == 269025044:
+        if str(Song.player.get_state()) == "State.Playing" or str(Song.player.get_state()) == "State.Paused":
+            Song.player.pause()
+            print("\rPause / Play\n>", end="")
+        else:
+            threading.Thread(target=Song.play, args=(True,), kwargs={}).start()
+
+
+def main(argv):  # args
     try:
         opts, args = getopt.getopt(argv, "hav", ["addp", "help", "version"])
     except getopt.GetoptError:
@@ -483,6 +508,14 @@ for argv_song in sys.argv:
             PlayList.playlist.append(argv_song)
 
 
+def media_buttons_listener(dummy_media):
+    with Listener(on_press=media_buttons):
+        while not Controls.exit_lock:
+            time.sleep(1)
+        return
+
+
+threading.Thread(target=media_buttons_listener, args=(True,), kwargs={}).start()
 print("\n|;;| Current Directory: " + os.getcwd())
 while Controls.current_input != "exit":  # this while could be True because the effective exit is with a elif/break
     print(">", end="")
@@ -508,6 +541,7 @@ while Controls.current_input != "exit":  # this while could be True because the 
 
     elif Controls.current_input == "pause":
         Song.player.pause()
+        print("\rPause / Play\n", end="")
 
     elif Controls.current_input == "stop":
         Song.player.stop()
