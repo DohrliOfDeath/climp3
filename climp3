@@ -379,6 +379,7 @@ class Song(object):
 
     @staticmethod
     def play(dummy1):
+        time.sleep(1)
         if str(Song.player.get_state()) == "State.Playing":
             return
         if len(PlayList.playlist) == 0:
