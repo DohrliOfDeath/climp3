@@ -8,8 +8,10 @@ import random
 import fnmatch
 import sys
 import getopt  # for command line arguments
-from pynput.keyboard import Key, KeyCode, Listener
-
+try:
+    from pynput.keyboard import Key, KeyCode, Listener
+except:
+    pass
 
 
 class Controls(object):
@@ -510,9 +512,12 @@ for argv_song in sys.argv:
 
 
 def media_buttons_listener(dummy_media):
-    with Listener(on_press=media_buttons):
-        while not Controls.exit_lock:
-            time.sleep(1)
+    try:
+        with Listener(on_press=media_buttons):
+            while not Controls.exit_lock:
+                time.sleep(1)
+            return
+    except:
         return
 
 
