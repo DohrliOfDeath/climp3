@@ -175,6 +175,13 @@ class Controls(object):
 class Directory(object):
     patterns = list()
     patterns.extend(['*.mp3', '*.m4a', '*.flac', '*.wma', '*.wav'])
+
+    @staticmethod
+    def is_media_playable(media_path):
+        media = vlc.MediaPlayer(media_path).get_media()
+        media.parse()
+        return media.get_duration()
+
     @staticmethod
     def cd_go_back():
         os.system('clear')  # only in terminal, not cross-compatible
@@ -424,7 +431,7 @@ class Song(object):
 
         duration = int(audiofile.duration) * 1000
         Controls.current_duration = duration
-        while Song.player.get_time() <= duration - 1000:
+        while Song.player.get_time() <= duration:
             while str(Song.player.get_state()) == "State.Paused" or str(Song.player.get_state()) == "State.Stopped":
                 if Controls.exit_lock:
                     return
