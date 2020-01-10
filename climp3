@@ -8,7 +8,7 @@ import random
 import fnmatch
 import sys
 import getopt  # for command line arguments
-try:
+try:  # to let climp3 start and be usable in non x11 environments (wayland or tty)
     from pynput.keyboard import Key, KeyCode, Listener
 except:
     pass
@@ -20,14 +20,6 @@ class Controls(object):
     current_input = ""  # change globals to properties
     current_song_duration = 0
     exit_lock = False
-
-    @staticmethod
-    def tostart():
-        print("Elapsed Time: " + str(Song.elapsed_song) + " seconds")
-
-    @staticmethod
-    def toend():
-        print("Time to end of song: " + str(Controls.current_duration - Song.elapsed_song) + " seconds")
 
     @staticmethod
     def print_help():
@@ -57,6 +49,9 @@ class Controls(object):
         print("  |skipto        |stops music and skips to entered song number")
         print("  |shufflep      |stops music and randomizes playlist")
         print("  |search        |searches for files")
+        print("  |toend         |shows time left of song")
+        print("  |tostart       |shows time already played of song")
+        print("  |length        |shows length of song")
 
     # noinspection PyCallByClass
     @staticmethod
@@ -337,7 +332,6 @@ class PlayList(object):
 
 class Song(object):
     player = vlc.MediaPlayer("")
-    elapsed_song = 0
 
     @staticmethod
     def show():
@@ -353,7 +347,7 @@ class Song(object):
         if audiofile.track:
             print('Track number: ' + str(int(audiofile.track[0])))
         if audiofile.duration:
-            print('Song duration: ', end='')
+            print('Song ', end='')
             PlayList.format_time(audiofile.duration)
         if audiofile.year:
             print('Release year: ' + str(audiofile.year))
@@ -402,19 +396,17 @@ class Song(object):
         Song.player = vlc.MediaPlayer("file://" + PlayList.playlist[Controls.current_play_number])
         Song.player.play()
 
-        duration = int(audiofile.duration)
+        duration = int(audiofile.duration) * 1000
         Controls.current_duration = duration
-        for i in range(0, int(duration)):
+        while Song.player.get_time() <= duration - 1000:
             while str(Song.player.get_state()) == "State.Paused" or str(Song.player.get_state()) == "State.Stopped":
                 if Controls.exit_lock:
                     return
                 time.sleep(1)  # to not progress the for loop while paused/stopped
             time.sleep(1)
-            Song.elapsed_song += 1
             if (duration != Controls.current_duration) or Controls.exit_lock:  # Trick to kill thread, when
                 return  # duration of the song is not the same as most recent song, then the thread gets killed
 
-        Song.elapsed_song = 0
         if Controls.current_play_number + 1 < len(PlayList.playlist):
             Controls.current_play_number += 1
             threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # recursive calling to play next song
@@ -437,7 +429,6 @@ class Song(object):
             return
 
         Song.player.stop()
-        Song.elapsed_song = 0
         Controls.current_play_number = raw_input
         threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # old thread get killed automatically
 
@@ -455,7 +446,6 @@ class Song(object):
             return
 
         Song.player.stop()
-        Song.elapsed_song = 0
         Controls.current_play_number = raw_input
         threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # start new thread, old thread get killed
 
@@ -551,7 +541,6 @@ while Controls.current_input != "exit":  # this while could be True because the 
 
     elif Controls.current_input == "stop":
         Song.player.stop()
-        Song.elapsed_song = 0
 
     elif Controls.current_input == "delp":
         PlayList.delete_playlist()
@@ -620,10 +609,13 @@ while Controls.current_input != "exit":  # this while could be True because the 
         Song.skipto2()
 
     elif Controls.current_input == "toend":
-        Controls.toend()
+        print("Time to end of song: " + str(int((Song.player.get_length() - Song.player.get_time()) /1000)) + " seconds")
 
     elif Controls.current_input == "tostart":
-        Controls.tostart()
+        print("Elapsed Time: " + str(int(Song.player.get_time() / 1000)) + " seconds")
+
+    elif Controls.current_input == "length":
+        print("Length: " + str(Song.player.get_length() / 1000))
 
     elif Controls.current_input == "exit":
         Controls.exit_lock = True
