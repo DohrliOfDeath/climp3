@@ -52,6 +52,9 @@ class Controls(object):
         print("  |toend         |shows time left of song")
         print("  |tostart       |shows time already played of song")
         print("  |length        |shows length of song")
+        print("  |seek [x]      |skips x seconds")
+        print("  |setchapter    |set chapter")
+        print("  |getchapter    |get current chapter")
 
     # noinspection PyCallByClass
     @staticmethod
@@ -104,6 +107,29 @@ class Controls(object):
             print("Please enter a valid number")
             return
         Song.player.audio_set_volume(next_volume)
+
+    @staticmethod
+    def setchapter():
+        print("Set chapter to[" + str(Song.player.get_chapter()) + ":" + str(Song.player.get_chapter_count()) + "]: ", end="")
+        try:
+            next_chapter = int(input())
+            if next_chapter > Song.player.get_chapter_count() or next_chapter < 0:
+                raise ValueError
+        except ValueError:
+            print("Please enter a valid number")
+            return
+        Song.player.set_chapter(next_chapter)
+
+    @staticmethod
+    def setchapter2():
+        try:
+            next_chapter = int(Controls.current_input[10:])
+            if next_chapter > Song.player.get_chapter_count() or next_chapter < 0:
+                raise ValueError
+        except ValueError:
+            print("Please enter a valid number")
+            return
+        Song.player.set_chapter(next_chapter)
 
     @staticmethod
     def skip():
@@ -616,6 +642,25 @@ while Controls.current_input != "exit":  # this while could be True because the 
 
     elif Controls.current_input == "length":
         print("Length: " + str(Song.player.get_length() / 1000))
+
+    elif Controls.current_input == "seek":
+        Song.player.set_time(Song.player.get_time() + 10000)
+
+    elif Controls.current_input[:4] == "seek":
+        try:
+            seek_time = int(Controls.current_input[4:]) * 1000
+        except ValueError:
+            pass
+        Song.player.set_time(Song.player.get_time() + seek_time)
+
+    elif Controls.current_input == "getchapter":
+        print("Chapter: " + str(Song.player.get_chapter()))
+
+    elif Controls.current_input == "setchapter":
+        Controls.setchapter()
+
+    elif Controls.current_input[:10] == "setchapter":
+        Controls.setchapter2()
 
     elif Controls.current_input == "exit":
         Controls.exit_lock = True
