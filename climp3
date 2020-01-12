@@ -431,12 +431,13 @@ class Song(object):
 
         duration = int(audiofile.duration) * 1000
         Controls.current_duration = duration
-        while Song.player.get_time() <= duration:
+        while str(Song.player.get_state()) != "State.Ended":
             while str(Song.player.get_state()) == "State.Paused" or str(Song.player.get_state()) == "State.Stopped":
                 if Controls.exit_lock:
                     return
                 time.sleep(1)  # to not progress the for loop while paused/stopped
             time.sleep(1)
+            # print(str(Song.player.get_state()) + " : " + str(Song.player.get_time()) + " : " + str(duration))
             if (duration != Controls.current_duration) or Controls.exit_lock:  # Trick to kill thread, when
                 return  # duration of the song is not the same as most recent song, then the thread gets killed
 
