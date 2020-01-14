@@ -27,6 +27,7 @@ class Controls(object):
         print("  |exit          |stops music and exits mp3Player")
         print("  |play          |starts playlist !When paused, to resume the song type pause again, not play!")
         print("  |cd            |change directory and select single songs")
+        print("  |addsearch     |searches for songs and adds them")
         print("  |addp          |add the whole current directory to the playlist")
         print("  |showp         |show the current playlist")
         print("  |delp          |stops music and deletes the current playlist")
@@ -174,13 +175,7 @@ class Controls(object):
 
 class Directory(object):
     patterns = list()
-    patterns.extend(['*.mp3', '*.m4a', '*.flac', '*.wma', '*.wav'])
-
-    @staticmethod
-    def is_media_playable(media_path):
-        media = vlc.MediaPlayer(media_path).get_media()
-        media.parse()
-        return media.get_duration()
+    patterns.extend(['*.mp4', '*.mp3', '*.m4a', '*.flac', '*.wma', '*.wav'])
 
     @staticmethod
     def cd_go_back():
@@ -238,6 +233,26 @@ class Directory(object):
                 return
             elif len(os.listdir(os.getcwd())) >= sub_folder_number > 0:
                 Directory.cd_subfolder(os.getcwd() + '/' + os.listdir(".")[sub_folder_number - 1], False)
+
+    @staticmethod
+    def add_search():
+        print("Search for: ", end="")
+        pattern = input()
+        pattern = "*" + pattern + "*"
+        root_path = os.getcwd()
+        for root, dirs, files in os.walk(root_path):
+            for filename in fnmatch.filter(files, pattern):
+                PlayList.playlist.append(os.path.join(root, filename))
+
+    @staticmethod
+    def add_search2():
+        pattern = Controls.current_input[10:]
+        pattern = "*" + pattern + "*"
+        root_path = os.getcwd()
+        for root, dirs, files in os.walk(root_path):
+            for filename in fnmatch.filter(files, pattern):
+                PlayList.playlist.append(os.path.join(root, filename))
+
 
     @staticmethod
     def search():
@@ -547,7 +562,7 @@ def media_buttons_listener(dummy_media):
 
 threading.Thread(target=media_buttons_listener, args=(True,), kwargs={}).start()
 print("\n|;;| Current Directory: " + os.getcwd())
-while Controls.current_input != "exit":  # this while could be True because the effective exit is with a elif/break
+while Controls.current_input != "exit":  # this while could always be True because the effective exit is with a elif/break
     print(">", end="")
     try:
         Controls.current_input = input()
@@ -556,6 +571,20 @@ while Controls.current_input != "exit":  # this while could be True because the 
 
     if Controls.current_input == "cd":
         Directory.input_directories()
+
+    elif Controls.current_input == "cd.." or Controls.current_input == "cd ..":
+        Directory.cd_go_back()
+        print("Went back one directory")
+
+    elif Controls.current_input[:2] == "cd":
+        try:
+            os.chdir(Controls.current_input[3:])
+            print("Changed active directory to: " + Controls.current_input[3:])
+        except FileNotFoundError:
+            print("This Directory does not exist")
+
+    elif Controls.current_input == "cll":
+        os.system("ls")
 
     elif Controls.current_input == "addp":
         PlayList.add()
@@ -633,6 +662,12 @@ while Controls.current_input != "exit":  # this while could be True because the 
     elif Controls.current_input[:6] == "search":
         Directory.search2()
 
+    elif Controls.current_input == "addsearch":
+        Directory.add_search()
+
+    elif Controls.current_input[:9] == "addsearch":
+        Directory.add_search2()
+
     elif Controls.current_input == "help":
         Controls.print_help()
 
@@ -673,5 +708,8 @@ while Controls.current_input != "exit":  # this while could be True because the 
     elif Controls.current_input == "exit":
         Controls.exit_lock = True
         break
+
+    else:
+        os.system(Controls.current_input)
 
 sys.exit()
