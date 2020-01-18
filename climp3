@@ -243,6 +243,7 @@ class Directory(object):
         for root, dirs, files in os.walk(root_path):
             for filename in fnmatch.filter(files, pattern):
                 PlayList.playlist.append(os.path.join(root, filename))
+                print("Added to Playlist:" + os.path.join(root, filename).replace(root_path, ''))
 
     @staticmethod
     def add_search2():
@@ -252,6 +253,7 @@ class Directory(object):
         for root, dirs, files in os.walk(root_path):
             for filename in fnmatch.filter(files, pattern):
                 PlayList.playlist.append(os.path.join(root, filename))
+                print("Added to Playlist:" + os.path.join(root, filename).replace(root_path, ''))
 
 
     @staticmethod
@@ -692,9 +694,9 @@ while Controls.current_input != "exit":  # this while could always be True becau
     elif Controls.current_input[:4] == "seek":
         try:
             seek_time = int(Controls.current_input[4:]) * 1000
+            Song.player.set_time(Song.player.get_time() + seek_time)
         except ValueError:
             pass
-        Song.player.set_time(Song.player.get_time() + seek_time)
 
     elif Controls.current_input == "getchapter":
         print("Chapter: " + str(Song.player.get_chapter()))
