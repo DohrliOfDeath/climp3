@@ -7,6 +7,7 @@ from tinytag import TinyTag
 import random
 import fnmatch
 import sys
+import readline # for autocompletion
 import getopt  # for command line arguments
 try:  # to let climp3 start and be usable in non x11 environments (wayland or tty)
     from pynput.keyboard import Key, KeyCode, Listener
@@ -521,6 +522,14 @@ def media_buttons(key):
             threading.Thread(target=Song.play, args=(True,), kwargs={}).start()
 
 
+def completer(text, state):
+    options = [i for i in commands if i.startswith(text)]
+    if state < len(options):
+        return options[state]
+    else:
+        return None
+
+
 def main(argv):  # args
     try:
         opts, args = getopt.getopt(argv, "hav", ["addp", "help", "version"])
@@ -543,15 +552,6 @@ if __name__ == "__main__":
     main(sys.argv[1:])
 
 
-for argv_song in sys.argv:
-    argv_extension = os.path.splitext(argv_song)[1]
-    if '*' + argv_extension in Directory.patterns:
-        if argv_song[0] != "/":
-            PlayList.playlist.append(os.getcwd() + "/" + argv_song)
-        else:
-            PlayList.playlist.append(argv_song)
-
-
 def media_buttons_listener(dummy_media):
     try:
         with Listener(on_press=media_buttons):
@@ -562,6 +562,25 @@ def media_buttons_listener(dummy_media):
         return
 
 
+def completer(text, state):
+    commands = ["play", "cd", "exit", "pause", "stop"]
+    options = [i for i in commands if i.startswith(text)]
+    if state < len(options):
+        return options[state]
+    else:
+        return None
+
+
+for argv_song in sys.argv:
+    argv_extension = os.path.splitext(argv_song)[1]
+    if '*' + argv_extension in Directory.patterns:
+        if argv_song[0] != "/":
+            PlayList.playlist.append(os.getcwd() + "/" + argv_song)
+        else:
+            PlayList.playlist.append(argv_song)
+
+readline.parse_and_bind("tab: complete")
+readline.set_completer(completer)
 threading.Thread(target=media_buttons_listener, args=(True,), kwargs={}).start()
 print("\n|;;| Current Directory: " + os.getcwd())
 while Controls.current_input != "exit":  # this while could always be True because the effective exit is with a elif/break
