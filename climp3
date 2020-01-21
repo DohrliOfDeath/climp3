@@ -563,7 +563,7 @@ def media_buttons_listener(dummy_media):
 
 
 def completer(text, state):
-    commands = ["play", "cd", "exit", "pause", "stop"]
+    commands = ["cll", "addp", "showp", "show", "delp", "dels", "clear", "togglemute", "mute", "unmute", "ismute", "getvolume", "setvolume", "skip", "back", "play", "cd", "exit", "pause", "stop", "restart", "restartp", "sortp", "shufflep", "search", "addsearch", "help", "skipto", "toend", "tostart", "length", "seek", "getchapter", "setchapter"]
     options = [i for i in commands if i.startswith(text)]
     if state < len(options):
         return options[state]
