@@ -176,7 +176,7 @@ class Controls(object):
 
 class Directory(object):
     patterns = list()
-    patterns.extend(['*.mp4', '*.mp3', '*.m4a', '*.flac', '*.wma', '*.wav'])
+    patterns.extend(['*.m4a', '*.MP3', '*.m4b', '*.mp4', '*.mp3', '*.m4a', '*.flac', '*.wma', '*.wav'])
 
     @staticmethod
     def cd_go_back():
@@ -243,8 +243,9 @@ class Directory(object):
         root_path = os.getcwd()
         for root, dirs, files in os.walk(root_path):
             for filename in fnmatch.filter(files, pattern):
-                PlayList.playlist.append(os.path.join(root, filename))
-                print("Added to Playlist:" + os.path.join(root, filename).replace(root_path, ''))
+                if '*' + os.path.splitext(filename)[1] in Directory.patterns:
+                    PlayList.playlist.append(os.path.join(root, filename))
+                    print("Added to Playlist:" + os.path.join(root, filename).replace(root_path, ''))
 
     @staticmethod
     def add_search2():
@@ -253,27 +254,27 @@ class Directory(object):
         root_path = os.getcwd()
         for root, dirs, files in os.walk(root_path):
             for filename in fnmatch.filter(files, pattern):
-                PlayList.playlist.append(os.path.join(root, filename))
-                print("Added to Playlist:" + os.path.join(root, filename).replace(root_path, ''))
-
+                if '*' + os.path.splitext(filename)[1] in Directory.patterns:
+                    PlayList.playlist.append(os.path.join(root, filename))
+                    print("Added to Playlist:" + os.path.join(root, filename).replace(root_path, ''))
 
     @staticmethod
     def search():
         print("Search for: ", end="")
-        pattern = input()
-        pattern = "*" + pattern + "*"
+        search_pattern = input()
+        search_pattern = "*" + pattern + "*"
         root_path = os.getcwd()
         for root, dirs, files in os.walk(root_path):
-            for filename in fnmatch.filter(files, pattern):
+            for filename in fnmatch.filter(files, search_pattern):
                 print(os.path.join(root, filename).replace(root_path, ''))
 
     @staticmethod
     def search2():
-        pattern = Controls.current_input[7:]
-        pattern = "*" + pattern + "*"
+        search_pattern = Controls.current_input[7:]
+        search_pattern = "*" + search_pattern + "*"
         root_path = os.getcwd()
         for root, dirs, files in os.walk(root_path):
-            for filename in fnmatch.filter(files, pattern):
+            for filename in fnmatch.filter(files, search_pattern):
                 print(os.path.join(root, filename).replace(root_path, ''))
 
 
@@ -336,12 +337,12 @@ class PlayList(object):
         wrong_type = False
 
         for current_song in PlayList.playlist:
+            print(str(PlayList.playlist.index(current_song) + 1) + "|: ", end="")
             audiofile = TinyTag.get(current_song)
             try:
                 playlist_duration += int(audiofile.duration)
             except TypeError:
                 wrong_type = True
-            print(str(PlayList.playlist.index(current_song) + 1) + "|: ", end="")
             if audiofile.artist and audiofile.title:
                 print(audiofile.artist + ' - ' + audiofile.title)
             else:  # if there are no tags
