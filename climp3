@@ -58,6 +58,17 @@ class Controls(object):
         print("  |setchapter    |set chapter")
         print("  |getchapter    |get current chapter")
 
+    @staticmethod
+    def status():
+        #os.get_terminal_size()
+        print(str('{:0>3}'.format(int(100*(Song.player.get_time() / Song.player.get_length())))) + " % |", end="")
+        for i in range (7, os.get_terminal_size()[0] - 1):
+            if (i / os.get_terminal_size()[0]) < (Song.player.get_time() / Song.player.get_length()):
+                print("#", end="")
+            else:
+                print("-", end="")
+        print("|")
+
     # noinspection PyCallByClass
     @staticmethod
     def unmute():
@@ -219,7 +230,8 @@ class Directory(object):
             print("0:/..")
             current_i = 1  # to be able to print numbers in front of subdirectories
             for current_subfolder in os.listdir(os.getcwd()):  # outputs the current subfolders
-                print(str(current_i) + ":/" + current_subfolder)
+                if current_subfolder[0] != '.' and current_subfolder[0] != '$':
+                    print(str(current_i) + ":/" + current_subfolder)
                 current_i += 1
             sub_folder_number = 0
             print(":>", end="")  # line before input
@@ -564,7 +576,7 @@ def media_buttons_listener(dummy_media):
 
 
 def completer(text, state):
-    commands = ["cll", "addp", "showp", "show", "delp", "dels", "clear", "togglemute", "mute", "unmute", "ismute", "getvolume", "setvolume", "skip", "back", "play", "cd", "exit", "pause", "stop", "restart", "restartp", "sortp", "shufflep", "search", "addsearch", "help", "skipto", "toend", "tostart", "length", "seek", "getchapter", "setchapter"]
+    commands = ["cll", "addp", "showp", "show", "delp", "dels", "clear", "togglemute", "mute", "unmute", "ismute", "getvolume", "setvolume", "skip", "back", "play", "cd", "quit", "exit", "pause", "stop", "restart", "restartp", "sortp", "shufflep", "search", "addsearch", "help", "skipto", "toend", "tostart", "length", "seek", "getchapter", "setchapter"]
     options = [i for i in commands if i.startswith(text)]
     if state < len(options):
         return options[state]
@@ -584,7 +596,7 @@ readline.parse_and_bind("tab: complete")
 readline.set_completer(completer)
 threading.Thread(target=media_buttons_listener, args=(True,), kwargs={}).start()
 print("\n|;;| Current Directory: " + os.getcwd())
-while Controls.current_input != "exit":  # this while could always be True because the effective exit is with a elif/break
+while True: #Controls.current_input != "exit":  # because the effective exit is with a elif/break
     print(">", end="")
     try:
         Controls.current_input = input()
@@ -699,6 +711,9 @@ while Controls.current_input != "exit":  # this while could always be True becau
     elif Controls.current_input[:6] == "skipto":
         Song.skipto2()
 
+    elif Controls.current_input == "status":
+        Controls.status()
+
     elif Controls.current_input == "toend":
         print("Time to end of song: " + str(int((Song.player.get_length() - Song.player.get_time()) /1000)) + " seconds")
 
@@ -727,7 +742,7 @@ while Controls.current_input != "exit":  # this while could always be True becau
     elif Controls.current_input[:10] == "setchapter":
         Controls.setchapter2()
 
-    elif Controls.current_input == "exit":
+    elif Controls.current_input == "exit" or Controls.current_input == "quit":
         Controls.exit_lock = True
         break
 
