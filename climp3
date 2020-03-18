@@ -51,6 +51,7 @@ class Controls(object):
         print("  |skipto        |stops music and skips to entered song number")
         print("  |shufflep      |stops music and randomizes playlist")
         print("  |search        |searches for files")
+        print("  |status        |shows status of song")
         print("  |toend         |shows time left of song")
         print("  |tostart       |shows time already played of song")
         print("  |length        |shows length of song")
