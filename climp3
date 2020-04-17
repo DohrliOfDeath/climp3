@@ -13,7 +13,23 @@ try:  # to let climp3 start and be usable in non x11 environments (wayland or tt
     from pynput.keyboard import Key, KeyCode, Listener
 except:
     pass
+try:  # discord integration 
+    from pypresence import Presence
+except:
+    pass
 
+
+### CUSTOM VARIABLES
+show_hidden_directories=False
+discord_integration = True
+discord_client_id = "700587096783716363"
+### CUSTOM VARIABLES END
+
+if os.popen("ps -Af").read().count("discord") == 0:
+    discord_integration = False
+else:
+    RPC = Presence(discord_client_id, pipe=0)
+    RPC.connect()
 
 class Controls(object):
     current_play_number = 0
@@ -231,7 +247,7 @@ class Directory(object):
             print("0:/..")
             current_i = 1  # to be able to print numbers in front of subdirectories
             for current_subfolder in os.listdir(os.getcwd()):  # outputs the current subfolders
-                if current_subfolder[0] != '.' and current_subfolder[0] != '$':
+                if (current_subfolder[0] != '.' and current_subfolder[0] != '$') or show_hidden_directories:
                     print(str(current_i) + ":/" + current_subfolder)
                 current_i += 1
             sub_folder_number = 0
@@ -440,6 +456,7 @@ class Song(object):
 
     @staticmethod
     def play(dummy1):
+        global discord_integration
         time.sleep(1)
         if str(Song.player.get_state()) == "State.Playing":
             return
@@ -450,12 +467,15 @@ class Song(object):
         audiofile = TinyTag.get(PlayList.playlist[Controls.current_play_number])
         print("", end="\r")  # clears current line
 
+        out = ""
         if audiofile.artist and audiofile.title:
-            print('|' + str(Controls.current_play_number + 1) + '::' + str(len(PlayList.playlist)) + '| Now playing: ' +
-                  audiofile.artist + ' - ' + audiofile.title, end="")
+            out = str(audiofile.artist) + ' - ' + str(audiofile.title)
         else:  # if there are no tags
-            print('|' + str(Controls.current_play_number + 1) + '::' + str(len(PlayList.playlist)) + '| Now playing: ' +
-                  PlayList.playlist[Controls.current_play_number], end="")
+            out = PlayList.playlist[Controls.current_play_number]
+
+        print('|' + str(Controls.current_play_number + 1) + '::' + str(len(PlayList.playlist)) + '| Now playing: '+ out, end="")
+        if discord_integration:
+            RPC.update(state=out)
 
         print('\n>', end="")
         Song.player = vlc.MediaPlayer("file://" + PlayList.playlist[Controls.current_play_number])
@@ -463,6 +483,7 @@ class Song(object):
 
         duration = int(audiofile.duration) * 1000
         Controls.current_duration = duration
+
         while str(Song.player.get_state()) != "State.Ended":
             while str(Song.player.get_state()) == "State.Paused" or str(Song.player.get_state()) == "State.Stopped":
                 if Controls.exit_lock:
@@ -596,6 +617,8 @@ for argv_song in sys.argv:
 readline.parse_and_bind("tab: complete")
 readline.set_completer(completer)
 threading.Thread(target=media_buttons_listener, args=(True,), kwargs={}).start()
+
+
 print("\n|;;| Current Directory: " + os.getcwd())
 while True: #Controls.current_input != "exit":  # because the effective exit is with a elif/break
     print(">", end="")
@@ -604,7 +627,7 @@ while True: #Controls.current_input != "exit":  # because the effective exit is 
     except ValueError:  # if no string is entered (maybe not even possible)
         print("Wrong input, try again")
 
-    if Controls.current_input == "cd":
+    if Controls.current_input == "cd" or Controls.current_duration == "cd ":
         Directory.input_directories()
 
     elif Controls.current_input == "cd.." or Controls.current_input == "cd ..":
