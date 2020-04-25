@@ -27,7 +27,7 @@ discord_client_id = "700587096783716363"
 
 if os.popen("ps -Af").read().count("discord") == 0:
     discord_integration = False
-else:
+if discord_integration:
     RPC = Presence(discord_client_id, pipe=0)
     RPC.connect()
 
@@ -74,6 +74,18 @@ class Controls(object):
         print("  |seek [x]      |skips x seconds")
         print("  |setchapter    |set chapter")
         print("  |getchapter    |get current chapter")
+
+    @staticmethod
+    def version():
+        print("climp3 version 1.7.0")
+        print("      _ _                  _____ ")
+        print("     | (_)                |____ |")
+        print("  ___| |_ _ __ ___  _ __      / /")
+        print(" / __| | | '_ ` _ \| '_ \     \ \ ")
+        print("| (__| | | | | | | | |_) |.___/ /")
+        print(" \___|_|_|_| |_| |_| .__/ \____/ ")
+        print("                   | |           ")
+        print("                   |_|           \n\n")
 
     @staticmethod
     def status():
@@ -183,7 +195,8 @@ class Controls(object):
             print("|EE| You have currently no playlist")
             return
         if Controls.current_play_number == 0:
-            print("|EE| This is the first song in the playlist")
+            print("|EE| This is the first song in the playlist, restarting")
+            Controls.restart()
             return
 
         Song.player.stop()
@@ -468,14 +481,15 @@ class Song(object):
         print("", end="\r")  # clears current line
 
         out = ""
+        out = '|' + str(Controls.current_play_number + 1) + '::' + str(len(PlayList.playlist)) + "| "
         if audiofile.artist and audiofile.title:
-            out = str(audiofile.artist) + ' - ' + str(audiofile.title)
+            out += str(audiofile.artist) + ' - ' + str(audiofile.title)
         else:  # if there are no tags
-            out = PlayList.playlist[Controls.current_play_number]
+            out += PlayList.playlist[Controls.current_play_number]
 
-        print('|' + str(Controls.current_play_number + 1) + '::' + str(len(PlayList.playlist)) + '| Now playing: '+ out, end="")
+        print(out, end="")
         if discord_integration:
-            RPC.update(state=out)
+                RPC.update(state=out)
 
         print('\n>', end="")
         Song.player = vlc.MediaPlayer("file://" + PlayList.playlist[Controls.current_play_number])
@@ -542,6 +556,12 @@ def media_buttons(key):
         return
     if key.vk == 269025047:
         Controls.skip()
+    elif key.vk == 0:
+        if int(Song.player.audio_get_volume()) <= 95:
+            Song.player.audio_set_volume(int(Song.player.audio_get_volume)+5)
+    elif key.vk == 0:
+        if int(Song.player.audio_get_volume()) >= 5:
+            Song.player.audio_set_volume(int(Song.player.audio_get_volume)-5)
     elif key.vk == 269025046:
         Controls.back()
     elif key.vk == 269025045:
@@ -579,7 +599,7 @@ def main(argv):  # args
             PlayList.add()
             print('added directory to playlist')
         elif opt in ("-v", "--version"):
-            print('Version climp3 1.6.0')
+            Controls.version()
             sys.exit()
 
 
@@ -728,6 +748,9 @@ while True: #Controls.current_input != "exit":  # because the effective exit is 
 
     elif Controls.current_input == "help":
         Controls.print_help()
+
+    elif Controls.current_input == "version":
+        Controls.version()
 
     elif Controls.current_input == "skipto":
         Song.skipto()
