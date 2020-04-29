@@ -5,6 +5,7 @@ A MP3/FLAC/M4A/WMA Player for console, headless only, written in python3 (linux 
     tinytag
     python-vlc
     pynput (optional)
+    pypresence (optional)
 
 ## Install:
 
