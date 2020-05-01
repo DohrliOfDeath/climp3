@@ -553,15 +553,15 @@ class Song(object):
 
 def media_buttons(key):
     if not hasattr(key, 'vk'):
+        if key == Key.f8:  # doesn't work yet
+            if int(Song.player.audio_get_volume()) <= 95:
+                Song.player.audio_set_volume(int(Song.player.audio_get_volume())+5)
+        elif key == Key.f7:  # doesn't work yet
+            if int(Song.player.audio_get_volume()) >= 5:
+                Song.player.audio_set_volume(int(Song.player.audio_get_volume())-5)
         return
     if key.vk == 269025047:
         Controls.skip()
-    elif key.vk == 0:
-        if int(Song.player.audio_get_volume()) <= 95:
-            Song.player.audio_set_volume(int(Song.player.audio_get_volume)+5)
-    elif key.vk == 0:
-        if int(Song.player.audio_get_volume()) >= 5:
-            Song.player.audio_set_volume(int(Song.player.audio_get_volume)-5)
     elif key.vk == 269025046:
         Controls.back()
     elif key.vk == 269025045:
