@@ -513,7 +513,7 @@ class Song(object):
                     else:
                         detail += "-"
                 detail += "|"
-                RPC.update(details = detail, state=out)
+                RPC.update(state = detail, details=out)
 
         if Controls.current_play_number + 1 < len(PlayList.playlist):
             Controls.current_play_number += 1
