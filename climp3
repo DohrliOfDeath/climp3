@@ -217,7 +217,7 @@ class Controls(object):
 
 class Directory(object):
     patterns = list()
-    patterns.extend(['*.m4a', '*.MP3', '*.m4b', '*.mp4', '*.mp3', '*.m4a', '*.flac', '*.wma', '*.wav'])
+    patterns.extend(['*.m4a', '*.MP3', '*.m4b', '*.mp4', '*.mp3', '*.m4a', '*.flac', '*.aac', '*.wma', '*.wav'])
 
     @staticmethod
     def cd_go_back():
@@ -480,7 +480,6 @@ class Song(object):
         audiofile = TinyTag.get(PlayList.playlist[Controls.current_play_number])
         print("", end="\r")  # clears current line
 
-        out = ""
         out = '|' + str(Controls.current_play_number + 1) + '::' + str(len(PlayList.playlist)) + "| "
         if audiofile.artist and audiofile.title:
             out += str(audiofile.artist) + ' - ' + str(audiofile.title)
@@ -488,8 +487,6 @@ class Song(object):
             out += PlayList.playlist[Controls.current_play_number]
 
         print(out, end="")
-        if discord_integration:
-                RPC.update(state=out)
 
         print('\n>', end="")
         Song.player = vlc.MediaPlayer("file://" + PlayList.playlist[Controls.current_play_number])
@@ -506,7 +503,17 @@ class Song(object):
             time.sleep(1)
             # print(str(Song.player.get_state()) + " : " + str(Song.player.get_time()) + " : " + str(duration))
             if (duration != Controls.current_duration) or Controls.exit_lock:  # Trick to kill thread, when
-                return  # duration of the song is not the same as most recent song, then the thread gets killed
+                return
+            if discord_integration:
+                detail = str('{:0>3}'.format(int(100*(Song.player.get_time() / Song.player.get_length())))) + "    %|"
+                width = 36
+                for i in range(5, width):
+                    if (i / width) < (Song.player.get_time() / Song.player.get_length()):
+                        detail += "|"
+                    else:
+                        detail += "-"
+                detail += "|"
+                RPC.update(details = detail, state=out)
 
         if Controls.current_play_number + 1 < len(PlayList.playlist):
             Controls.current_play_number += 1
@@ -555,10 +562,10 @@ def media_buttons(key):
     if not hasattr(key, 'vk'):
         if key == Key.f8:  # doesn't work yet
             if int(Song.player.audio_get_volume()) <= 95:
-                Song.player.audio_set_volume(int(Song.player.audio_get_volume())+5)
+                Song.player.audio_set_volume(int(Song.player.audio_get_volume())+2)
         elif key == Key.f7:  # doesn't work yet
             if int(Song.player.audio_get_volume()) >= 5:
-                Song.player.audio_set_volume(int(Song.player.audio_get_volume())-5)
+                Song.player.audio_set_volume(int(Song.player.audio_get_volume())-2)
         return
     if key.vk == 269025047:
         Controls.skip()
