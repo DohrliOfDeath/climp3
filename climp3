@@ -291,7 +291,10 @@ class Directory(object):
 
     @staticmethod
     def add_search2():
-        pattern = Controls.current_input[10:]
+        if Controls.current_input[:10] == "addsearch ":
+            pattern = Controls.current_input[10:]
+        else:
+            pattern = Controls.current_input[5:]
         pattern = "*" + pattern + "*"
         root_path = os.getcwd()
         for root, dirs, files in os.walk(root_path):
@@ -337,14 +340,25 @@ class PlayList(object):
     @staticmethod
     def delete_song():
         # Song.player.stop()
-        print("Remove song[s] from playlist: ", end="")
+        print("Searchword for removing songs: ", end="")
         pattern = input()
+        deleted_songs = [x for x in PlayList.playlist if pattern in x]
+        for song in deleted_songs:
+            print("Deleting: " + song)
+
         PlayList.playlist[:] = [x for x in PlayList.playlist if pattern not in x]
 
     @staticmethod
     def delete_song2():
         # Song.player.stop()
-        pattern = Controls.current_input[5:]
+        if Controls.current_input[:10] == "delsearch ":
+            pattern = Controls.current_input[10:]
+        else:
+            pattern = Controls.current_input[5:]
+        deleted_songs = [x for x in PlayList.playlist if pattern in x]
+        for song in deleted_songs:
+            print("Deleting: " + song)
+
         PlayList.playlist[:] = [x for x in PlayList.playlist if pattern not in x]
 
     @staticmethod
@@ -750,7 +764,7 @@ while True: #Controls.current_input != "exit":  # because the effective exit is 
     elif Controls.current_input == "addsearch" or Controls.current_input == "adds":
         Directory.add_search()
 
-    elif Controls.current_input[:9] == "addsearch" or Controls.current_input[:5] == "adds ":
+    elif Controls.current_input[:10] == "addsearch " or Controls.current_input[:5] == "adds ":
         Directory.add_search2()
 
     elif Controls.current_input == "help":
