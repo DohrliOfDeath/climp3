@@ -693,10 +693,10 @@ while True: #Controls.current_input != "exit":  # because the effective exit is 
     elif Controls.current_input == "delp":
         PlayList.delete_playlist()
 
-    elif Controls.current_input == "dels":
+    elif Controls.current_input == "dels" or Controls.current_input == "delsearch":
         PlayList.delete_song()
 
-    elif Controls.current_input[:4] == "dels":
+    elif Controls.current_input[:5] == "dels " or Controls.current_input[:10] == "delsearch ":
         PlayList.delete_song2()
 
     elif Controls.current_input == "clear":
@@ -747,10 +747,10 @@ while True: #Controls.current_input != "exit":  # because the effective exit is 
     elif Controls.current_input[:6] == "search":
         Directory.search2()
 
-    elif Controls.current_input == "addsearch":
+    elif Controls.current_input == "addsearch" or Controls.current_input == "adds":
         Directory.add_search()
 
-    elif Controls.current_input[:9] == "addsearch":
+    elif Controls.current_input[:9] == "addsearch" or Controls.current_input[:5] == "adds ":
         Directory.add_search2()
 
     elif Controls.current_input == "help":
