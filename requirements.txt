@@ -1,2 +1,4 @@
-tinytag==1.2.2
-python-vlc==3.0.7110
+pynput==1.6.8
+pypresence==4.0.0
+python-vlc==3.0.9113
+tinytag==1.4.0
