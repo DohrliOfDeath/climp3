@@ -413,24 +413,15 @@ class PlayList(object):
 
     @staticmethod
     def sort():
-        Song.player.stop()
-        Song.elapsed_song = 0
-        Controls.current_play_number = 0
-        exchange = True
-        while exchange:
-            exchange = False
-            for i1 in range(len(PlayList.playlist) - 1):
-                audiofile1 = TinyTag.get(PlayList.playlist[i1])
-                audiofile2 = TinyTag.get(PlayList.playlist[i1 + 1])
-                if not audiofile1.track:
-                    print("|EE| At least one song has no valid tags")
-                    return
+        playlist_all = []
+        for song in PlayList.playlist:
+            playlist_all.append([song, TinyTag.get(song).album, int(TinyTag.get(song).track)])
 
-                if int(audiofile1.track) > int(audiofile2.track):
-                    exchange = True
-                    temp = PlayList.playlist[i1]
-                    PlayList.playlist[i1] = PlayList.playlist[i1 + 1]
-                    PlayList.playlist[i1 + 1] = temp
+        playlist_all = sorted(playlist_all, key = lambda x: (x[1], x[2]))
+        i = 0
+        for s in playlist_all:
+            PlayList.playlist[i] = s[0]
+            i+=1
 
     @staticmethod
     def shuffle_playlist():
