@@ -415,7 +415,14 @@ class PlayList(object):
     def sort():
         playlist_all = []
         for song in PlayList.playlist:
-            playlist_all.append([song, TinyTag.get(song).album, int(TinyTag.get(song).track)])
+            try:
+                audio = TinyTag.get(song)
+            except:
+                print("Invalid Tags: " + song)
+            if not audio.album or not audio.track:
+                print("Invalid tags: " + song)
+                return
+            playlist_all.append([song, audio.album, int(audio.track)])
 
         playlist_all = sorted(playlist_all, key = lambda x: (x[1], x[2]))
         i = 0
