@@ -25,6 +25,9 @@ discord_integration = True
 discord_client_id = "700587096783716363"
 ### CUSTOM VARIABLES END
 
+if os.popen("ps -Af").read().count("discord") == 0:  # if discord is closed
+    discord_integration = False
+
 if discord_integration:
     RPC = Presence(discord_client_id, pipe=0)
     RPC.connect()
@@ -502,7 +505,7 @@ class Song(object):
     @staticmethod
     def play(dummy1):
         global discord_integration
-        time.sleep(1)
+        time.sleep(0.05)
 
         if str(Song.player.get_state()) == "State.Playing":
             return
