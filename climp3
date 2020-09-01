@@ -636,7 +636,6 @@ class Song(object):
                 Song.player.stop()
                 Controls.current_play_number = i
                 threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # start new thread, old thread get killed
-                print(song)
                 return
             i += 1
 
