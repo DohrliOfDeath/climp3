@@ -69,6 +69,7 @@ class Controls(object):
         print("  |setvolume     |sets  volume")
         print("  |sortp         |stops music and sorts playlist after track number")
         print("  |skipto        |stops music and skips to entered song number")
+        print("  |skips         |stops music and skips to song containing string")
         print("  |shufflep      |stops music and randomizes playlist")
         print("  |search        |searches for files")
         print("  |status        |shows status of song")
@@ -597,6 +598,48 @@ class Song(object):
         Controls.current_play_number = raw_input
         threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # start new thread, old thread get killed
 
+    @staticmethod
+    def skips():
+        if len(PlayList.playlist) == 0:
+            print("|EE| You have currently no playlist")
+            return
+        print("Skip to track number: ", end="")
+
+        try:
+            raw_input = input()
+        except TypeError:
+            return
+
+        i = 0
+        for song in PlayList.playlist:
+            if raw_input in song:
+                Song.player.stop()
+                Controls.current_play_number = i
+                threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # start new thread, old thread get killed
+                return
+            i += 1
+
+    @staticmethod
+    def skips2():
+        if len(PlayList.playlist) == 0:
+            print("|EE| You have currently no playlist")
+            return
+
+        try:
+            raw_input = Controls.current_input[5:]
+        except TypeError:
+            return
+
+        i = 0
+        for song in PlayList.playlist:
+            if raw_input in song:
+                Song.player.stop()
+                Controls.current_play_number = i
+                threading.Thread(target=Song.play, args=(True,), kwargs={}).start()  # start new thread, old thread get killed
+                print(song)
+                return
+            i += 1
+
 
 def media_buttons(key):
     if not hasattr(key, 'vk'):
@@ -804,6 +847,12 @@ while True: #Controls.current_input != "exit":  # because the effective exit is 
 
     elif Controls.current_input[:6] == "skipto":
         Song.skipto2()
+
+    elif Controls.current_input == "skips":
+        Song.skips()
+
+    elif Controls.current_input[:5] == "skips":
+        Song.skips2()
 
     elif Controls.current_input == "status":
         Controls.status()
