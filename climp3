@@ -79,6 +79,7 @@ class Controls(object):
         print("  |seek [x]      |skips x seconds")
         print("  |setchapter    |set chapter")
         print("  |getchapter    |get current chapter")
+        print("  |reverse       | reverses playlist")
 
     @staticmethod
     def version():
@@ -459,6 +460,14 @@ class PlayList(object):
         print("shuffling Playlist")
         random.shuffle(PlayList.playlist)
 
+    @staticmethod
+    def reverse_playlist():
+        Song.player.stop()
+        Song.elapsed_song = 0
+        Controls.current_play_number = 0
+        print("reversing Playlist")
+        PlayList.playlist = PlayList.playlist[::-1]
+
 
 class Song(object):
     player = vlc.MediaPlayer("")
@@ -554,7 +563,7 @@ class Song(object):
                     else:
                         detail += "-"
                 detail += "|"
-                RPC.update(state = detail, details=out)
+                RPC.update(state = detail, details=str(audiofile.artist) + ' - ' + str(audiofile.title))
 
         if Controls.current_play_number + 1 < len(PlayList.playlist):
             Controls.current_play_number += 1
@@ -822,6 +831,9 @@ while True: #Controls.current_input != "exit":  # because the effective exit is 
 
     elif Controls.current_input == "shufflep":
         PlayList.shuffle_playlist()
+
+    elif Controls.current_input == "reverse":
+        PlayList.reverse_playlist()
 
     elif Controls.current_input == "search":
         Directory.search()
