@@ -4,7 +4,7 @@
 show_hidden_directories=False
 discord_integration = True
 discord_client_id = "700587096783716363"
-wallpaperScript = False
+wallpaperScript = True
 ### CUSTOM VARIABLES END
 
 import os
@@ -573,7 +573,6 @@ class Song(object):
 
             if wallpaperScript:
                 percent = round(100 * (Song.player.get_time() / Song.player.get_length()))
-                print(percent)
                 os.system('sh /usr/bin/percentToWallpaper.sh ' + str(percent))
 
         if Controls.current_play_number + 1 < len(PlayList.playlist):
