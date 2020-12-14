@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+
+### CUSTOM VARIABLES
+show_hidden_directories=False
+discord_integration = True
+discord_client_id = "700587096783716363"
+wallpaperScript = False
+### CUSTOM VARIABLES END
+
 import os
 import vlc
 import time
@@ -16,16 +24,11 @@ except:
 try:  # discord integration 
     from pypresence import Presence
 except:
+    discord_integration = False
     pass
 
 
-### CUSTOM VARIABLES
-show_hidden_directories=False
-discord_integration = True
-discord_client_id = "700587096783716363"
-### CUSTOM VARIABLES END
-
-if os.popen("ps -Af").read().count("discord") == 0:  # if discord is closed
+if os.popen("ps -Af").read().count("discord") == 0 or os.popen("ps -Af").read().count("Discord") == 0:  # if discord is closed
     discord_integration = False
 
 if discord_integration:
@@ -551,19 +554,27 @@ class Song(object):
             if (duration != Controls.current_duration) or Controls.exit_lock:  # Trick to kill thread, when
                 return
             if discord_integration:  # optimisation, only execute command ps -Af, if discord_integration is true
-                if os.popen("ps -Af").read().count("discord") == 0:  # if discord is closed
+                if os.popen("ps -Af").read().count("discord") == 0 or os.popen("ps -Af").read().count("Discord") == 0:  # if discord is closed
                     discord_integration = False
 
             if discord_integration:  # prints stuff to discord
-                detail = str('{:0>3}'.format(int(100*(Song.player.get_time() / Song.player.get_length())))) + "    %|"
-                width = 36
-                for i in range(5, width):
-                    if (i / width) < (Song.player.get_time() / Song.player.get_length()):
-                        detail += "|"
-                    else:
-                        detail += "-"
-                detail += "|"
-                RPC.update(state = detail, details=str(audiofile.artist) + ' - ' + str(audiofile.title))
+                try:
+                    detail = str('{:0>3}'.format(int(100*(Song.player.get_time() / Song.player.get_length())))) + "    %|"
+                    width = 36
+                    for i in range(5, width):
+                        if (i / width) < (Song.player.get_time() / Song.player.get_length()):
+                            detail += "|"
+                        else:
+                            detail += "-"
+                    detail += "|"
+                    RPC.update(state = detail, details=str(audiofile.artist) + ' - ' + str(audiofile.title))
+                except ZeroDivisionError:
+                    print("", end="")
+
+            if wallpaperScript:
+                percent = round(100 * (Song.player.get_time() / Song.player.get_length()))
+                print(percent)
+                os.system('sh /usr/bin/percentToWallpaper.sh ' + str(percent))
 
         if Controls.current_play_number + 1 < len(PlayList.playlist):
             Controls.current_play_number += 1
@@ -716,7 +727,7 @@ def media_buttons_listener(dummy_media):
 
 
 def completer(text, state):
-    commands = ["cll", "addp", "showp", "show", "delp", "dels", "clear", "togglemute", "mute", "unmute", "ismute", "getvolume", "setvolume", "skip", "back", "play", "cd", "quit", "exit", "pause", "stop", "restart", "restartp", "sortp", "shufflep", "search", "addsearch", "help", "skipto", "toend", "tostart", "length", "seek", "getchapter", "setchapter"]
+    commands = ["cll", "addp", "showp", "show", "delp", "dels", "clear", "togglemute", "mute", "unmute", "ismute", "getvolume", "setvolume", "skip", "back", "play", "cd", "quit", "exit", "pause", "stop", "restart", "restartp", "sortp", "shufflep", "search", "addsearch", "help", "skipto", "toend", "tostart", "length", "seek", "getchapter", "setchapter", "version", "adds", "delsearch", "restart", "skips", "reverse"]
     options = [i for i in commands if i.startswith(text)]
     if state < len(options):
         return options[state]
@@ -776,7 +787,7 @@ while True: #Controls.current_input != "exit":  # because the effective exit is 
 
     elif Controls.current_input == "pause":
         Song.player.pause()
-        print("\rPause / Play\n", end="")
+        # print("\rPause / Play\n", end="")
 
     elif Controls.current_input == "stop":
         Song.player.stop()
