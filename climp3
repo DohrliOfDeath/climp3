@@ -53,6 +53,7 @@ class Controls(object):
         print("  |adds          |searches for songs and adds them")
         print("  |addp          |add the whole current directory to the playlist")
         print("  |showp         |show the current playlist")
+        print("  |showfast      |show the current playlist, but faster and less info")
         print("  |delp          |stops music and deletes the current playlist")
         print("  |dels          |searches for songs and removes them from the playlist")
         print("  |delsearch     |searches for songs and removes them from the playlist")
@@ -437,6 +438,16 @@ class PlayList(object):
             print("One or more files gave back a wrong audio duration")
 
     @staticmethod
+    def show_playlist2():
+        os.system('clear')  # only in terminal
+        playlist_duration = 0
+
+        for current_song in PlayList.playlist:
+            print(str(PlayList.playlist.index(current_song) + 1) + "|: ", end="")
+            print(current_song)  # just print the filename with the whole file path
+
+
+    @staticmethod
     def sort():
         playlist_all = []
         for song in PlayList.playlist:
@@ -726,7 +737,7 @@ def media_buttons_listener(dummy_media):
 
 
 def completer(text, state):
-    commands = ["cll", "addp", "showp", "show", "delp", "dels", "clear", "togglemute", "mute", "unmute", "ismute", "getvolume", "setvolume", "skip", "back", "play", "cd", "quit", "exit", "pause", "stop", "restart", "restartp", "sortp", "shufflep", "search", "addsearch", "help", "skipto", "toend", "tostart", "length", "seek", "getchapter", "setchapter", "version", "adds", "delsearch", "restart", "skips", "reverse"]
+    commands = ["cll", "addp", "showp", "showfast", "show", "delp", "dels", "clear", "togglemute", "mute", "unmute", "ismute", "getvolume", "setvolume", "skip", "back", "play", "cd", "quit", "exit", "pause", "stop", "restart", "restartp", "sortp", "shufflep", "search", "addsearch", "help", "skipto", "toend", "tostart", "length", "seek", "getchapter", "setchapter", "version", "adds", "delsearch", "restart", "skips", "reverse"]
     options = [i for i in commands if i.startswith(text)]
     if state < len(options):
         return options[state]
@@ -777,6 +788,9 @@ while True: #Controls.current_input != "exit":  # because the effective exit is 
 
     elif Controls.current_input == "showp":
         PlayList.show_playlist()
+
+    elif Controls.current_input == "showfast":
+        PlayList.show_playlist2()
 
     elif Controls.current_input == "show":
         Song.show()
