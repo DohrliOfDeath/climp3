@@ -1,5 +1,5 @@
 # climp3
-A MP3/FLAC/M4A/WMA Player for console, headless only, written in python3 (linux only)
+A MP3/FLAC/M4A/WMA Player for console, headless only, written in python3 (linux only)  
 
 ## Dependencies:
     tinytag
@@ -9,8 +9,8 @@ A MP3/FLAC/M4A/WMA Player for console, headless only, written in python3 (linux 
 
 ## Install:
 
-  Download the File: climp3
-  navigate with your terminal to the downloaded file,then:
+  Download the File: climp3  
+  navigate with your terminal to the downloaded file,then:  
 
 ```
 $ sudo chmod +x climp3
