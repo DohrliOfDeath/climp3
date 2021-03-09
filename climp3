@@ -679,16 +679,16 @@ def media_buttons(key):
             if int(Song.player.audio_get_volume()) >= 5:
                 Song.player.audio_set_volume(int(Song.player.audio_get_volume())-2)
         return
-    if key.vk == 269025047:
+    if key == Key.media_next:
         Controls.skip()
-    elif key.vk == 269025046:
+    elif key == Key.media_previous:
         Controls.back()
-    elif key.vk == 269025045:
-        if str(Song.player.get_state()) == "State.Playing":
-            Song.player.stop()
-        elif str(Song.player.get_state()) == "State.Stopped":
-            threading.Thread(target=Song.play, args=(True,), kwargs={}).start()
-    elif key.vk == 269025044:
+#    elif key == Key.media_play_pause:  # stop media key not in pynput
+#        if str(Song.player.get_state()) == "State.Playing":
+#            Song.player.stop()
+#        elif str(Song.player.get_state()) == "State.Stopped":
+#            threading.Thread(target=Song.play, args=(True,), kwargs={}).start()
+    elif key == Key.media_play_pause:
         if str(Song.player.get_state()) == "State.Playing" or str(Song.player.get_state()) == "State.Paused":
             Song.player.pause()
             print("\rPause / Play\n>", end="")
