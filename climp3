@@ -35,8 +35,6 @@ if discord_integration:
     RPC = Presence(discord_client_id, pipe=0)
     RPC.connect()
 
-i = vlc.Instance(["--file-caching=5000 --network-caching=3000"])
-
 class Controls(object):
     current_play_number = 0
     current_duration = 0
@@ -486,7 +484,7 @@ class PlayList(object):
 
 
 class Song(object):
-    player = i.media_player_new()
+    player = vlc.MediaPlayer("")
 
     @staticmethod
     def show():
